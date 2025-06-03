@@ -1,4 +1,5 @@
-"use client"
+// DEPRECATED: Этот файл оставлен для совместимости
+// Используйте CrosswordWidget из @/widgets/crossword вместо этого компонента
 
 import type React from "react"
 
@@ -7,6 +8,9 @@ import { Card } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { CheckCircle, RotateCcw, Lightbulb } from "lucide-react"
+
+// Для новых проектов используйте:
+// import { CrosswordWidget } from "@/widgets/crossword"
 
 // Mock crossword data structure
 const mockCrosswordData = {
@@ -78,7 +82,7 @@ interface Word {
   clueImage: string
 }
 
-export default function CrosswordMiniApp() {
+export function Crossword() {
   const [grid, setGrid] = useState<(GridCell | null)[][]>(mockCrosswordData.grid)
   const [availableLetters, setAvailableLetters] = useState<string[]>(mockCrosswordData.availableLetters)
   const [draggedLetter, setDraggedLetter] = useState<string | null>(null)

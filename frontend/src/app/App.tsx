@@ -1,15 +1,22 @@
-import { useLaunchParams } from '@telegram-apps/sdk-react';
-
-function MyComponent() {
-  const params = useLaunchParams();
-  // params.tgWebAppData.user, params.tgWebAppData.query_id и т.д.
-  return <div>Hello, {params?.tgWebAppData?.user?.first_name}</div>;
-}
+// import { useLaunchParams } from '@telegram-apps/sdk-react';
+import { CrosswordWidget } from '@/widgets/crossword';
 
 function App() {
+  // const params = useLaunchParams();
+  
+  const handleGameComplete = (score: number) => {
+    console.log('Игра завершена! Счет:', score);
+    // Здесь можно добавить логику для Telegram интеграции
+    // Например, отправить результат в бот или показать модальное окно
+  };
+
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <MyComponent />
+    <div className="min-h-svh">
+      {/* <div>Hello, {params?.tgWebAppData?.user?.first_name}</div> */}
+      <CrosswordWidget 
+        difficulty="medium"
+        onGameComplete={handleGameComplete}
+      />
     </div>
   )
 }
