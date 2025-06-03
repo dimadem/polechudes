@@ -147,7 +147,7 @@ export default function CrosswordMiniApp() {
     setSelectedClue(null)
   }
 
-  const getCellClassName = (cell: GridCell | null, rowIndex: number, colIndex: number) => {
+  const getCellClassName = (cell: GridCell | null) => {
     if (!cell) return "bg-gray-100"
 
     const isCorrect = cell.letter === cell.correct && cell.letter !== ""
@@ -191,7 +191,7 @@ export default function CrosswordMiniApp() {
               row.map((cell, colIndex) => (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className={`aspect-square ${getCellClassName(cell, rowIndex, colIndex)}`}
+                  className={`aspect-square ${getCellClassName(cell)}`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
                 >
@@ -222,7 +222,7 @@ export default function CrosswordMiniApp() {
                 className={`relative cursor-pointer transition-all duration-200 ${
                   completedWords.has(word.id) ? "opacity-50" : "hover:scale-105"
                 } ${selectedClue?.id === word.id ? "ring-2 ring-blue-400" : ""}`}
-                onClick={() => setSelectedClue(selectedClue?.id === word.id ? null : word)}
+                onClick={() => setSelectedClue(selectedClue?.id === word.id ? null : word as Word)}
               >
                 <img
                   src={word.clueImage || "/placeholder.svg"}
