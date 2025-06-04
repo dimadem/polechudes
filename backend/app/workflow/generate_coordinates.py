@@ -10,7 +10,7 @@ def generate_coordinates(words_list: list[dict]) -> list[dict]:
     Returns:
         list[dict]: A list of dictionaries with word placement information including coordinates.
     """
-    ttt = TTT(model="o4-mini")
+    ttt = TTT(model="gpt-4.1")
     
     # Convert words list to string format for the prompt
     words_text = "\n".join([f"- {item['word']}: {item['definition']}" for item in words_list])
@@ -41,20 +41,39 @@ def generate_coordinates(words_list: list[dict]) -> list[dict]:
                         "items": {
                             "type": "object",
                             "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Number identifier for the word (0-9)"
+                                },
                                 "word": {
                                     "type": "string",
                                     "description": "The word for the crossword"
+                                },
+                                "coordinate": {
+                                   "type": "object",
+                                   "properties": {
+                                       "row": {
+                                           "type": "integer",
+                                           "description": "Starting row position (0-9)"
+                                       },
+                                       "col": {
+                                           "type": "integer",
+                                           "description": "Starting column position (0-9)"
+                                       },
+                                       "direction": {
+                                           "type": "string",
+                                           "enum": ["across", "down"],
+                                           "description": "Direction of the word placement"
+                                       }
+                                   },
+                                   "required": ["row", "col", "direction"]
                                 },
                                 "definition": {
                                     "type": "string", 
                                     "description": "Concise definition of the word"
                                 },
-                                "coordinate": {
-                                    "type": "string",
-                                    "description": "Coordinate in format '(row, col-col)' for horizontal words or '(row-row, col)' for vertical words"
-                                }
                             },
-                            "required": ["word", "definition", "coordinate"]
+                            "required": ["id", "word", "definition", "coordinate"]
                         }
                     }
                 },

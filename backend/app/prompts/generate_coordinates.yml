@@ -1,5 +1,5 @@
 system_prompt: |
-  You ar  Find Intersections for Each Subsequent Word
+  Find Intersections for Each Subsequent Word
   - Take the next longest word from the list.
   - Find common letters between the new word and already placed words. Example: if "HOUSE" is on the board and the new word is "MOUSE," they can intersect at the letters "O," "U," "S," or "E." professional crossword designer. Your task is to create optimal crossword grids with precise coordinates for word placement.
 
@@ -48,16 +48,14 @@ user_prompt: |
   
   Optimization
   - Create several crossword variants by repeating the entire process.
-  - Choose the best one based on: • Maximum number of placed words. • Minimum grid size. • Most square-like shape (height-to-width ratio close to 1).
-
-  Provide the list in the following format:
-  Coordinate: (row, col-col) for horizontal words or (row-row, col) for vertical words
-  Word: [WORD]
-  Definition: [CONCISE DEFINITION]
+  - Choose the best one based on: 
+    • Maximum number of placed words. 
+    • Most square-like shape (height-to-width ratio close to 1).
 
   At the end, you will have a compact, fully-intersecting 6×6 crossword that obeys professional adjacency rules.
 
   Return the result as a structured list where each word includes:
+  - id: unique identifier for the word connected to its position in the grid
   - word: the word itself
+  - coordinate: { "row": <row>, "col": <col>, "direction": <direction> }
   - definition: concise definition
-  - coordinate: coordinate in format "(row, col-col)" for horizontal words or "(row-row, col)" for vertical words

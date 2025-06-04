@@ -5,28 +5,11 @@ from typing import Literal
 
 from app.workflow.generate_words import generate_words
 from app.workflow.generate_coordinates import generate_coordinates
-from app.workflow.generate_markdown import generate_markdown
+from app.workflow.generate_crossword_data import generate_crossword_data
 
 router = APIRouter()
 
-class GridCell(BaseModel):
-    id: int
-    letter: str
-
-class Word(BaseModel):
-    id: int
-    word: str
-    start_pos: tuple[int, int]
-    direction: Literal["across", "down"]
-    clue_image: str
-
-class CrosswordData(BaseModel):
-    id: int
-    grid: list[list[Optional[GridCell]]]
-    words: list[Word]
-    available_letters: list[str]
-
-@router.post("/api/generate_crossword", response_model=CrosswordData)
+@router.post("/api/generate_crossword")
 async def generate_crossword(request: Request):
     """
     Endpoint to generate a crossword puzzle based on the provided request data.
@@ -45,14 +28,39 @@ async def generate_crossword(request: Request):
     generated_coordinates = generate_coordinates(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
-    generated_markdown = generate_markdown(generated_coordinates)
-    print("Generated markdown:", generated_markdown)
+    generated_crossword_data = generate_crossword_data(generated_coordinates)
+    print("Generated crossword data:", generated_crossword_data)
 
-    # Here you would implement the logic to generate a crossword puzzle
-    # For now, we will just return a placeholder response
-    return CrosswordData(
-        id="1",
-        grid=[],
-        words=[],
-        available_letters=[]
+    # Return structured crossword data for frontend
+    return generated_crossword_data
+
+@router.get("/api/crosswords/random")
+async def get_random_crossword(difficulty: Optional[str] = "medium"):
+    """
+    Endpoint to get a random crossword puzzle with specified difficulty.
+    """
+    print(f"Generating random crossword with difficulty: {difficulty}")
+
+    # Map difficulty to appropriate parameters
+    difficulty_mapping = {
+        "easy": {"level": "easy", "theme": "animals"},
+        "medium": {"level": "medium", "theme": "nature"},
+        "hard": {"level": "hard", "theme": "science"}
+    }
+    
+    params = difficulty_mapping.get(difficulty, difficulty_mapping["medium"])
+    
+    generated_words = generate_words(
+        theme=params["theme"],
+        language="en",
+        level=params["level"]
     )
+    print("Generated words:", generated_words)
+
+    generated_coordinates = generate_coordinates(generated_words)
+    print("Generated coordinates:", generated_coordinates)
+
+    generated_crossword_data = generate_crossword_data(generated_coordinates)
+    print("Generated crossword data:", generated_crossword_data)
+
+    return generated_crossword_data
