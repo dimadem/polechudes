@@ -20,11 +20,13 @@ export function useCrossword(crosswordId?: string) {
 
   useEffect(() => {
     if (crosswordId) {
+      console.log('🔍 Fetching crossword by ID:', crosswordId)
       fetchCrossword(crosswordId)
     }
   }, [crosswordId, fetchCrossword])
 
   const getRandomCrossword = useCallback((difficulty?: string) => {
+    console.log('🎲 Requesting random crossword with difficulty:', difficulty)
     return fetchRandomCrossword(difficulty)
   }, [fetchRandomCrossword])
 
@@ -41,30 +43,41 @@ export function useGameSession() {
   const [session, setSession] = useState<GameSession | null>(null)
   
   const {
+    data: sessionData,
     loading: startLoading,
     error: startError,
     execute: executeStartSession
   } = useAsync(crosswordApi.startGameSession)
 
   const {
+    data: updateData,
     loading: updateLoading,
     error: updateError,
     execute: executeUpdateSession
   } = useAsync(crosswordApi.updateGameSession)
 
+  // Обновляем локальное состояние когда приходят новые данные
+  useEffect(() => {
+    if (sessionData) {
+      setSession(sessionData)
+    }
+  }, [sessionData])
+
+  useEffect(() => {
+    if (updateData) {
+      setSession(updateData)
+    }
+  }, [updateData])
+
   const startSession = useCallback(async (crosswordId: string) => {
     try {
       await executeStartSession(crosswordId)
-      const newSession = await crosswordApi.startGameSession(crosswordId)
-      if (newSession) {
-        setSession(newSession)
-      }
-      return newSession
+      return sessionData
     } catch (error) {
       console.error('Failed to start session:', error)
       return null
     }
-  }, [executeStartSession])
+  }, [executeStartSession, sessionData])
 
   const updateSession = useCallback(async (
     data: Partial<Pick<GameSession, 'score' | 'completed' | 'endTime'>>
@@ -73,16 +86,12 @@ export function useGameSession() {
     
     try {
       await executeUpdateSession(session.id, data)
-      const updatedSession = await crosswordApi.updateGameSession(session.id, data)
-      if (updatedSession) {
-        setSession(updatedSession)
-      }
-      return updatedSession
+      return updateData
     } catch (error) {
       console.error('Failed to update session:', error)
       return null
     }
-  }, [session, executeUpdateSession])
+  }, [session, executeUpdateSession, updateData])
 
   const endSession = useCallback(async (score: number): Promise<GameSession | null> => {
     return await updateSession({

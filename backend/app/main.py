@@ -13,7 +13,7 @@ app = FastAPI(title="Crossword API", version="1.0.0")
 # CORS настройки
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],  # Vite dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -109,24 +109,63 @@ MOCK_CROSSWORDS = [
 for mock_crossword in MOCK_CROSSWORDS:
     crosswords_db[mock_crossword["id"]] = CrosswordData(**mock_crossword)
 
+print(f"✅ Loaded {len(crosswords_db)} crosswords: {list(crosswords_db.keys())}")
+
 # API endpoints
 @app.get("/")
 async def root():
     return {"message": "Crossword API"}
 
-@app.get("/api/crosswords/{crossword_id}", response_model=CrosswordData)
-async def get_crossword(crossword_id: str):
-    if crossword_id not in crosswords_db:
-        raise HTTPException(status_code=404, detail="Crossword not found")
-    return crosswords_db[crossword_id]
+# Debug endpoint для проверки
+@app.get("/api/debug")
+async def debug():
+    return {
+        "crosswords_count": len(crosswords_db),
+        "crosswords_ids": list(crosswords_db.keys()),
+        "sessions_count": len(sessions_db)
+    }
 
+# Простой тест endpoint
+@app.get("/api/test")
+async def test():
+    return {"status": "ok", "message": "Backend работает!", "crosswords": list(crosswords_db.keys())}
+
+# ВАЖНО: /random должен быть ПЕРЕД /{crossword_id}
 @app.get("/api/crosswords/random", response_model=CrosswordData)
 async def get_random_crossword(difficulty: Optional[str] = None):
+    print(f"🎲 Random crossword request, difficulty: {difficulty}")
+    print(f"📦 Available crosswords: {list(crosswords_db.keys())}")
+    
     if not crosswords_db:
+        print("❌ No crosswords available!")
         raise HTTPException(status_code=404, detail="No crosswords available")
     
-    # В реальном приложении фильтровать по сложности
-    crossword_id = random.choice(list(crosswords_db.keys()))
+    # Просто возвращаем первый кроссворд для простоты
+    crossword_id = "crossword-1"
+    print(f"🎯 Selected: {crossword_id}")
+    
+    if crossword_id not in crosswords_db:
+        print(f"❌ Crossword {crossword_id} not found in database!")
+        raise HTTPException(status_code=404, detail="Selected crossword not found")
+    
+    result = crosswords_db[crossword_id]
+    print(f"✅ Returning crossword: {result.id}")
+    return result
+
+@app.get("/api/crosswords/{crossword_id}", response_model=CrosswordData)
+async def get_crossword(crossword_id: str):
+    print(f"🔍 Get crossword by ID: {crossword_id}")
+    
+    # Защита от перехвата /random
+    if crossword_id == "random":
+        print("⚠️ Intercepted 'random' as crossword_id, redirecting...")
+        return await get_random_crossword()
+    
+    if crossword_id not in crosswords_db:
+        print(f"❌ Crossword {crossword_id} not found")
+        raise HTTPException(status_code=404, detail="Crossword not found")
+    
+    print(f"✅ Found crossword: {crossword_id}")
     return crosswords_db[crossword_id]
 
 @app.get("/api/crosswords")

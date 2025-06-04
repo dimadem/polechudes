@@ -1,13 +1,12 @@
 // import { useLaunchParams } from '@telegram-apps/sdk-react';
 import { CrosswordWidget } from '@/widgets/crossword';
+// import TestApp from '../TestApp'
 
 function App() {
   // const params = useLaunchParams();
   
   const handleGameComplete = (score: number) => {
     console.log('Игра завершена! Счет:', score);
-    // Здесь можно добавить логику для Telegram интеграции
-    // Например, отправить результат в бот или показать модальное окно
   };
 
   return (
@@ -17,6 +16,7 @@ function App() {
         difficulty="medium"
         onGameComplete={handleGameComplete}
       />
+      {/* <TestApp /> */}
     </div>
   )
 }

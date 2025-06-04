@@ -1,15 +1,6 @@
-import React, { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
-import { useCrossword, useGameSession } from "@/entities/crossword"
-import { 
-  useCrosswordGame,
-  CrosswordGrid,
-  AvailableLetters,
-  VisualClues,
-  GameStatus,
-  GameControls
-} from "@/features/crossword-game"
 
 interface CrosswordWidgetProps {
   crosswordId?: string
@@ -20,97 +11,51 @@ interface CrosswordWidgetProps {
 
 export function CrosswordWidget({ 
   crosswordId, 
-  difficulty, 
-  onGameComplete,
+  difficulty = "medium", 
   className = ""
-}: CrosswordWidgetProps) {
-  const { 
-    crossword, 
-    loading: crosswordLoading, 
-    error: crosswordError,
-    getRandomCrossword 
-  } = useCrossword(crosswordId)
+}: CrosswordWidgetProps) 
+{
 
-  const {
-    session,
-    startSession,
-    updateSession,
-    endSession,
-    loading: sessionLoading
-  } = useGameSession()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [crossword, setCrossword] = useState<any>(null)
 
-  const {
-    gameState,
-    initializeGame,
-    resetGame,
-    selectClue,
-    handleDragStart,
-    handleDrop,
-    isGameComplete,
-  } = useCrosswordGame(crossword || undefined)
-
-  // Инициализация игры при загрузке кроссворда
   useEffect(() => {
-    if (crossword) {
-      initializeGame(crossword)
-    }
-  }, [crossword, initializeGame])
-
-  // Начало игровой сессии
-  useEffect(() => {
-    if (crossword && !session) {
-      startSession(crossword.id)
-    }
-  }, [crossword, session, startSession])
-
-  // Обновление счета в сессии
-  useEffect(() => {
-    if (session && gameState.score > 0) {
-      updateSession({ score: gameState.score })
-    }
-  }, [session, gameState.score, updateSession])
-
-  // Завершение игры
-  useEffect(() => {
-    if (crossword && isGameComplete(crossword.words.length)) {
-      endSession(gameState.score).then(() => {
-        onGameComplete?.(gameState.score)
-      })
-    }
-  }, [crossword, isGameComplete, gameState.score, endSession, onGameComplete])
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
-
-  const handleDropOnGrid = (e: React.DragEvent, rowIndex: number, colIndex: number) => {
-    e.preventDefault()
-    if (crossword) {
-      handleDrop(rowIndex, colIndex, crossword.words)
-    }
-  }
-
-  const handleReset = () => {
-    if (crossword) {
-      resetGame(crossword)
-      if (session) {
-        startSession(crossword.id)
+    const loadCrossword = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        console.log('🎯 Loading crossword with difficulty:', difficulty)
+        
+        const apiUrl = `http://localhost:8000/api/crosswords/random?difficulty=${difficulty}`
+        console.log('🌐 API Request:', apiUrl)
+        
+        const response = await fetch(apiUrl)
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`)
+        }
+        
+        const data = await response.json()
+        console.log('✅ API Response:', data)
+        
+        setCrossword(data)
+      } catch (err) {
+        console.error('❌ API Request failed:', err)
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      } finally {
+        setLoading(false)
       }
     }
-  }
 
-  const handleGetRandomCrossword = () => {
-    getRandomCrossword(difficulty)
-  }
-
-  // Загрузка случайного кроссворда если нет ID
-  useEffect(() => {
-    if (!crosswordId && !crossword) {
-      handleGetRandomCrossword()
+    // Загружаем кроссворд только если нет ID (случайный) или есть конкретный ID
+    if (!crosswordId || crosswordId) {
+      loadCrossword()
     }
-  }, [crosswordId, crossword])
+  }, [crosswordId, difficulty]) // Простые зависимости
 
-  if (crosswordLoading || sessionLoading) {
+  if (loading) {
     return (
       <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
@@ -123,14 +68,14 @@ export function CrosswordWidget({
     )
   }
 
-  if (crosswordError) {
+  if (error) {
     return (
       <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
-            <p className="text-red-600 mb-4">Error loading crossword: {crosswordError}</p>
+            <p className="text-red-600 mb-4">Error loading crossword: {error}</p>
             <button 
-              onClick={handleGetRandomCrossword}
+              onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Try Again
@@ -148,7 +93,7 @@ export function CrosswordWidget({
           <Card className="p-6 text-center">
             <p className="text-gray-600 mb-4">No crossword available</p>
             <button 
-              onClick={handleGetRandomCrossword}
+              onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Load Random Crossword
@@ -167,49 +112,71 @@ export function CrosswordWidget({
           <h1 className="text-2xl font-bold text-gray-800">Crossword Puzzle</h1>
           <div className="flex justify-center items-center gap-4">
             <Badge variant="secondary" className="text-sm">
-              Score: {gameState.score}
+              Score: 0
             </Badge>
             <Badge variant="outline" className="text-sm">
-              {gameState.completedWords.size}/{crossword.words.length} Words
+              0/{crossword.words?.length || 0} Words
             </Badge>
           </div>
         </div>
 
-        {/* Crossword Grid */}
+        {/* 
+        // Crossword Data Display (temporary)
         <Card className="p-4">
-          <CrosswordGrid
-            grid={gameState.grid}
-            onDragOver={handleDragOver}
-            onDrop={handleDropOnGrid}
-          />
-        </Card>
+          <h3 className="font-semibold mb-2">Crossword Data:</h3>
+          <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-64">
+            {JSON.stringify(crossword, null, 2)}
+          </pre>
+        </Card> */}
 
-        {/* Visual Clues */}
-        <Card className="p-4">
-          <VisualClues
-            words={crossword.words}
-            completedWords={gameState.completedWords}
-            selectedClue={gameState.selectedClue}
-            onClueSelect={selectClue}
-          />
-        </Card>
+        {/* Simple Grid Display */}
+        {crossword.grid && (
+          <Card className="p-4">
+            <h3 className="font-semibold mb-2">Grid:</h3>
+            <div className="grid grid-cols-10 gap-1 max-w-xs mx-auto">
+              {crossword.grid.flat().map((cell: any, index: number) => (
+                <div
+                  key={index}
+                  className={`w-6 h-6 border text-xs flex items-center justify-center 
+                      ${cell ? 'bg-white border-gray-400' : 'bg-gray-200 border-gray-200'}
+                    `}>
+                  {cell?.number || ''}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Available Letters */}
-        <Card className="p-4">
-          <AvailableLetters
-            letters={gameState.availableLetters}
-            onDragStart={handleDragStart}
-          />
-        </Card>
+        {crossword.availableLetters && (
+          <Card className="p-4">
+            <h3 className="font-semibold mb-2">Available Letters:</h3>
+            <div className="flex flex-wrap gap-2">
+              {crossword.availableLetters.map((letter: string, index: number) => (
+                <div
+                  key={index}
+                  className="w-8 h-8 bg-blue-100 border border-blue-300 rounded flex items-center justify-center font-semibold text-blue-800"
+                >
+                  {letter}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
-        {/* Controls */}
-        <GameControls onReset={handleReset} />
-
-        {/* Game Status */}
-        <GameStatus
-          isComplete={isGameComplete(crossword.words.length)}
-          score={gameState.score}
-        />
+        {/* Words List */}
+        {crossword.words && (
+          <Card className="p-4">
+            <h3 className="font-semibold mb-2">Words:</h3>
+            <div className="space-y-2">
+              {crossword.words.map((word: any, index: number) => (
+                <div key={index} className="text-sm">
+                  <strong>{word.word}</strong> - {word.clue}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   )
