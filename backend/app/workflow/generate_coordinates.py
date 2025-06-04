@@ -1,26 +1,25 @@
 from app.core.ttt import TTT
 from app.prompts.utils import load_prompts, replace_multiple_placeholders
 
-prompts = load_prompts("generate_words.yml")
+prompts = load_prompts("generate_coordinates.yml")
 
-def generate_words(theme: str, language: str, level: str) -> list[dict]:
-    """ Generate a list of words based on the given theme, language, and level.
+def generate_coordinates(words_list: list[dict]) -> list[dict]:
+    """ Generate crossword coordinates for a list of words.
     Args:
-        theme (str): The theme for the words.
-        language (str): The language of the words.
-        level (str): The difficulty level of the words.
+        words_list (list[dict]): A list of dictionaries with 'word' and 'definition' keys.
     Returns:
-        list[dict]: A list of dictionaries with 'word' and 'definition' keys.
+        list[dict]: A list of dictionaries with word placement information including coordinates.
     """
     ttt = TTT(model="gpt-4.1")
+    
+    # Convert words list to string format for the prompt
+    words_text = "\n".join([f"- {item['word']}: {item['definition']}" for item in words_list])
     
     system_prompt = prompts["system_prompt"]
     user_prompt = replace_multiple_placeholders(
         prompts["user_prompt"], 
         {
-            "theme": theme,
-            "language": language, 
-            "level": level
+            "words_list": words_text
         }
     )
 
@@ -31,14 +30,14 @@ def generate_words(theme: str, language: str, level: str) -> list[dict]:
     
     tools = [
         ttt.create_function_tool(
-            name="generate_words_list",
-            description="Generate a structured list of words with their definitions for a crossword puzzle.",
+            name="generate_crossword_coordinates",
+            description="Generate a structured crossword grid with coordinates for word placement.",
             parameters={
                 "type": "object",
                 "properties": {
-                    "words": {
+                    "crossword": {
                         "type": "array",
-                        "description": "List of words with their definitions",
+                        "description": "List of words with their positions and coordinates",
                         "items": {
                             "type": "object",
                             "properties": {
@@ -49,13 +48,17 @@ def generate_words(theme: str, language: str, level: str) -> list[dict]:
                                 "definition": {
                                     "type": "string", 
                                     "description": "Concise definition of the word"
+                                },
+                                "coordinate": {
+                                    "type": "string",
+                                    "description": "Coordinate in format '(row, col-col)' for horizontal words or '(row-row, col)' for vertical words"
                                 }
                             },
-                            "required": ["word", "definition"]
+                            "required": ["word", "definition", "coordinate"]
                         }
                     }
                 },
-                "required": ["words"]
+                "required": ["crossword"]
             }
         )
     ]
@@ -63,8 +66,8 @@ def generate_words(theme: str, language: str, level: str) -> list[dict]:
     response = ttt.generate_response_with_tools(messages=messages, tools=tools)
     
     if response and isinstance(response, dict):
-        if response.get("function_name") == "generate_words_list":
+        if response.get("function_name") == "generate_crossword_coordinates":
             arguments = response.get("arguments", {})
-            return arguments.get("words", [])
+            return arguments.get("crossword", [])
     
     return []
