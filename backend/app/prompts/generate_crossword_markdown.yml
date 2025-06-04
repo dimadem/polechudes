@@ -1,10 +1,15 @@
-generate_crossword_markdown: |
-  You are a crossword designer. 
-  Using the following list of words, their definitions, and directions, create a crossword grid.
+system_prompt: |
+  You are a professional crossword designer. Your task is to create markdown formatted crossword grids from provided word coordinates.
+
+user_prompt: |
+  Using the following words with their coordinates and directions, create a crossword grid in markdown format.
+
+  Words data:
+  {words_data}
 
   Requirements:
-  - The crossword grid must be exactly 6×6 cells.
-  - All words must fit entirely inside the 6×6 grid. Do not allow any word to go beyond the grid boundaries.
+  - The crossword grid must be exactly 10×10 cells.
+  - All words must fit entirely inside the 10×10 grid. Do not allow any word to go beyond the grid boundaries.
   - Each word must be placed so that it starts and ends within the grid.
   - Arrange the words so that vertical and horizontal words intersect at common letters wherever possible. For example, if the word "CAT" (vertical) and "BAT" (horizontal) share the letter "A", they should intersect at this letter in the grid.
   - Do not simply stack words; ensure that vertical and horizontal words intersect at shared letters whenever possible.
@@ -16,13 +21,17 @@ generate_crossword_markdown: |
   - An empty grid with only the numbers for starting positions; other cells should be blank or use ⬜.
 
   Use this markdown table format:
-  |   | 1 | 2 | 3 | 4 | 5 | 6 | 
-  | 1 |   |   |   |   |   |   |
-  | 2 |   |   |   |   |   |   |
-  | 3 |   |   |   |   |   |   |
-  | 4 |   |   |   |   |   |   |
-  | 5 |   |   |   |   |   |   |
-  | 6 |   |   |   |   |   |   |			
+  |    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+  | 1  |   |   |   |   |   |   |   |   |   |    |
+  | 2  |   |   |   |   |   |   |   |   |   |    |
+  | 3  |   |   |   |   |   |   |   |   |   |    |
+  | 4  |   |   |   |   |   |   |   |   |   |    |
+  | 5  |   |   |   |   |   |   |   |   |   |    |
+  | 6  |   |   |   |   |   |   |   |   |   |    |
+  | 7  |   |   |   |   |   |   |   |   |   |    |
+  | 8  |   |   |   |   |   |   |   |   |   |    |
+  | 9  |   |   |   |   |   |   |   |   |   |    |
+  | 10 |   |   |   |   |   |   |   |   |   |    |
 
   Additional rules:
   - Do not use words longer than 6 letters. If the word is longer, leave it out.
@@ -33,13 +42,17 @@ generate_crossword_markdown: |
 
   Example of correct intersections:
 
-  |   | 1 | 2 | 3 | 4 | 5 | 6 |
-  | 1 |   |   |   |   |   |   |
-  | 2 |   |   | B |   |   |   |
-  | 3 |   | C | A | T |   |   |
-  | 4 |   |   | T |   |   |   |
-  | 5 |   |   |   |   |   |   |
-  | 6 |   |   |   |   |   |   |
+  |    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+  | 1  |   |   |   |   |   |   |   |   |   |    |
+  | 2  |   |   | B |   |   |   |   |   |   |    |
+  | 3  |   | C | A | T |   |   |   |   |   |    |
+  | 4  |   |   | T |   |   |   |   |   |   |    |
+  | 5  |   |   |   |   |   |   |   |   |   |    |
+  | 6  |   |   |   |   |   |   |   |   |   |    |
+  | 7  |   |   |   |   |   |   |   |   |   |    |
+  | 8  |   |   |   |   |   |   |   |   |   |    |
+  | 9  |   |   |   |   |   |   |   |   |   |    |
+  | 10 |   |   |   |   |   |   |   |   |   |    |
 
   At the end, provide the list of clues with their numbers and directions. Double-check that all words fit perfectly inside the grid and that the cell count is correct.
 

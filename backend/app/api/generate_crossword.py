@@ -5,6 +5,7 @@ from typing import Literal
 
 from app.workflow.generate_words import generate_words
 from app.workflow.generate_coordinates import generate_coordinates
+from app.workflow.generate_markdown import generate_markdown
 
 router = APIRouter()
 
@@ -44,6 +45,8 @@ async def generate_crossword(request: Request):
     generated_coordinates = generate_coordinates(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
+    generated_markdown = generate_markdown(generated_coordinates)
+    print("Generated markdown:", generated_markdown)
 
     # Here you would implement the logic to generate a crossword puzzle
     # For now, we will just return a placeholder response

@@ -34,7 +34,7 @@ class TTT:
         self.model = model
 
     def generate_response(
-            self, 
+        self, 
         messages: list[ChatCompletionMessageParam], 
         **kwargs
     ) -> str:
@@ -52,8 +52,8 @@ class TTT:
             response: ChatCompletion = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=kwargs.get('temperature', 0.7),
-                max_tokens=kwargs.get('max_tokens', 1000),
+                # temperature=kwargs.get('temperature', 0.7),
+                # max_tokens=kwargs.get('max_tokens', 1000),
                 top_p=kwargs.get('top_p', 1.0),
                 frequency_penalty=kwargs.get('frequency_penalty', 0.0),
                 presence_penalty=kwargs.get('presence_penalty', 0.0)
@@ -94,8 +94,8 @@ class TTT:
                 messages=messages,
                 tools=tools,
                 tool_choice=tool_choice,
-                temperature=kwargs.get('temperature', 0.7),
-                max_tokens=kwargs.get('max_tokens', 1000)
+                # temperature=kwargs.get('temperature', 0.7),
+                # max_tokens=kwargs.get('max_tokens', 1000)
             )
             
             choice = response.choices[0]

@@ -10,7 +10,7 @@ def generate_coordinates(words_list: list[dict]) -> list[dict]:
     Returns:
         list[dict]: A list of dictionaries with word placement information including coordinates.
     """
-    ttt = TTT(model="gpt-4.1")
+    ttt = TTT(model="o4-mini")
     
     # Convert words list to string format for the prompt
     words_text = "\n".join([f"- {item['word']}: {item['definition']}" for item in words_list])

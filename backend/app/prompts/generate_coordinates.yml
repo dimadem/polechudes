@@ -61,5 +61,3 @@ user_prompt: |
   - word: the word itself
   - definition: concise definition
   - coordinate: coordinate in format "(row, col-col)" for horizontal words or "(row-row, col)" for vertical words
-  - direction: "horizontal" or "vertical"
-  - length: word length
