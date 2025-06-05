@@ -4,8 +4,8 @@ from typing import Optional
 from typing import Literal
 
 from app.workflow.generate_words import generate_words
-from app.workflow.generate_coordinates import generate_coordinates
-from app.workflow.generate_crossword_data import generate_crossword_data
+from app.workflow.generate_coordinates_tool import generate_coordinates
+from app.workflow.orchestrator_agent import process_crossword
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ async def generate_crossword(request: Request):
     )
     print("Generated words:", generated_words)
 
-    generated_coordinates = await generate_coordinates(generated_words)
+    generated_coordinates = await process_crossword(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
     # generated_crossword_data = generate_crossword_data(generated_coordinates)
@@ -57,7 +57,7 @@ async def get_random_crossword(difficulty: Optional[str] = "medium"):
     )
     print("Generated words:", generated_words)
 
-    generated_coordinates = await generate_coordinates(generated_words)
+    generated_coordinates = await process_crossword(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
     # generated_crossword_data = generate_crossword_data(generated_coordinates)

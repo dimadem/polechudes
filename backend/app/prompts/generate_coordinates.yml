@@ -4,6 +4,9 @@ system_prompt: |
 user_prompt: |
   Using the following list of words with their definitions, create a crossword grid with coordinates.
 
+  Words:
+  {words}
+
   Instructions:
 
   Pre-process logic:

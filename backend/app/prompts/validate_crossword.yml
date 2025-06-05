@@ -1,8 +1,7 @@
 system_prompt: |
   You are a professional crossword designer. 
-  Your task is to create logical structure formatted crossword grids from provided word coordinates.
-  Always use the create_crossword_grid function to return your results in the proper structured format.
-
+  Your task is to validate logical structure formatted crossword grids from provided word coordinates.
+  Always use validate_crossword tool to return your results in the proper structured format.
 
 user_prompt: |
   Words data:
@@ -19,8 +18,5 @@ user_prompt: |
   - If word is not fit the rules, leave it out.
   - All words must be fully inside the grid, without any overflow or misplacement.
 
-  Return the result as a structured list where each word includes:
-  - id: an identifier for the word which is a sequential number starting from 0
-  - word: the word itself
-  - coordinate: { "row": <row>, "col": <col>, "direction": <direction> }
-  - definition: concise definition
+  If crossword rules are violated or does not meet the requirements, return is_valid_crossword false and a detailed issue message.
+  If the crossword rules are met, return is_valid_crossword true.
