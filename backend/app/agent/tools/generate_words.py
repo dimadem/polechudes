@@ -1,5 +1,5 @@
 from app.core.ttt import TTT
-from app.prompts.utils import load_prompts, replace_multiple_placeholders
+from app.agent.prompts.utils import load_prompts, replace_multiple_placeholders
 
 prompts = load_prompts("generate_words.yml")
 

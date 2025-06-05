@@ -1,0 +1,17 @@
+system_prompt: |
+  You are a professional crossword designer. 
+  Build markdown formatted crossword on provided word coordinates.
+  Then validate logical structure.
+  Always use validate_crossword tool to return your results in the proper structured format.
+
+user_prompt: |
+  Words data:
+  {words_data}
+
+  Requirements:
+  - The crossword must be a square grid.
+  - The grid must be at least 10x10.
+  - Each word must be placed horizontally or vertically.
+  - Words must intersect by one letter.
+
+  

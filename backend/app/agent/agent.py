@@ -1,11 +1,11 @@
-from app.prompts.utils import load_prompts, replace_multiple_placeholders
+from app.agent.prompts.utils import load_prompts
 
 from pydantic import BaseModel, Field
 
 from agents import Agent, Runner
 
-from app.workflow.generate_coordinates_tool import generate_coordinates
-from app.workflow.validate_crossword_tool import validate_crossword
+from app.agent.tools.generate_coordinates_tool import generate_coordinates
+from app.agent.tools.validate_crossword_tool import validate_crossword
 
 prompts = load_prompts("generate_coordinates.yml")
 
@@ -29,16 +29,12 @@ class ValidationResult(BaseModel):
 orchestrator = Agent(
         name="Orchestrator",
         instructions="""
-        You are the crossword generation coordinator. Follow this workflow:
-        
-        1. First, send the word list to generate_coordinates to create the crossword layout
-        2. Then, send the generated crossword to validate_crossword for validation
-        3. Based on validation results:
-        - If valid: return the crossword to the user
-        - If invalid: you can try to regenerate up to 2 more times with validator feedback
-        
-        Always provide the final crossword output, whether validated or not.
-        Keep track of validation attempts and include reasoning.
+        You are the crossword generation coordinator.
+        Follow this workflow:
+        1. Send ALL words to generate_coordinates to create maximum coverage
+        2. Validate the result
+        3. If invalid due to conflicts, iteratively remove problematic words
+        4. Goal: maximize the number of words placed while maintaining validity
         """,
         model="o4-mini",
         tools=[
@@ -49,13 +45,15 @@ orchestrator = Agent(
 )
 
 
-async def process_crossword(words_list: list[dict]) -> dict:
+async def generate_crossword_agent(words_list: list[dict]) -> dict:
     """ Generate crossword coordinates for a list of words.
     Args:
         words_list (list[dict]): A list of dictionaries with 'word' and 'definition' keys.
     Returns:
         dict: A dictionary with crossword data including words and board_size for frontend.
     """
+
+    print("\n\nGenerate Crossword Agent\n")
 
     # Create a mapping of words to their definitions
     word_to_definition = {item['word']: item['definition'] for item in words_list}
@@ -64,7 +62,9 @@ async def process_crossword(words_list: list[dict]) -> dict:
     words_text = "\n".join([f"- {item['word']}" for item in words_list])
     
     input_message = words_text
-    print("Input message for gen_coords_agent:", input_message)
+
+   
+
     # Use the gen_coords_agent to generate crossword coordinates
     runner = await Runner.run(starting_agent=orchestrator, input=input_message)
 

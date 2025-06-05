@@ -1,5 +1,5 @@
 from app.core.ttt import TTT
-from app.prompts.utils import load_prompts, replace_multiple_placeholders
+from app.agent.prompts.utils import load_prompts, replace_multiple_placeholders
 from agents import function_tool
 
 prompts = load_prompts("validate_crossword.yml")
@@ -15,6 +15,7 @@ async def validate_crossword(input: str) -> dict:
     Returns:
         dict: A dictionary indicating whether the crossword is valid and any error messages.
     """
+    print("\n\nValidate Crossword tool\n")
 
     ttt = TTT(model="gpt-4.1")
 

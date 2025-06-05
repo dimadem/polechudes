@@ -1,5 +1,5 @@
 from app.core.ttt import TTT
-from app.prompts.utils import load_prompts, replace_multiple_placeholders
+from app.agent.prompts.utils import load_prompts, replace_multiple_placeholders
 from agents import function_tool
 
 prompts = load_prompts("generate_coordinates.yml")
@@ -15,11 +15,12 @@ async def generate_coordinates(input: str) -> dict:
     Returns:
         dict: A dictionary with crossword data including words and board_size for frontend.
     """
+    print("\n\nGenerate Coordinates tool\n")
 
-    ttt = TTT(model="gpt-4.1")
+    ttt = TTT(model="o4-mini")
 
     system_prompt = prompts["system_prompt"]
-    print("input:", input)
+    print("input:\n", input)
     user_prompt = replace_multiple_placeholders(
         prompts["user_prompt"],
         {

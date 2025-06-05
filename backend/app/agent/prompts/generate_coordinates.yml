@@ -1,0 +1,17 @@
+system_prompt: |
+  You are a professional crossword constructor.  
+  Your task is to build a 10×10 crossword.
+
+user_prompt: |
+  Words to place: {words}
+
+  Algorithm:
+  1. Sort ALL words by length (longest first)
+  2. FOR EACH remaining word in the sorted list:
+     - Make sure the word is intersect
+     - Check grid boundaries and conflicts
+     - If valid placement found, add to result
+     - If no valid placement, skip and continue
+  3. Return ALL successfully placed words
+
+  CRITICAL: Process every word in the list, not just one!
