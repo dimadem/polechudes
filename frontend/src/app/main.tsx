@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { init } from '@telegram-apps/sdk-react';
 import './index.css'
@@ -17,7 +16,5 @@ const container = document.getElementById('root');
 const root = createRoot(container!);
 
 root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <App />
 )

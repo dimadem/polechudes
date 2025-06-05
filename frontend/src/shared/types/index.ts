@@ -1,43 +1,37 @@
-export interface GridCell {
-  id: number
-  letter: string
-  correct: string
-}
-
-export interface Word {
+// API Response types (от бэкенда)
+export interface ApiWord {
   id: string
   word: string
-  startPos: [number, number]
-  direction: "across" | "down"
-  clueImage: string
+  coordinate: {
+    row: number
+    col: number
+    direction: "across" | "down"
+  }
+  definition: string
 }
 
-export interface CrosswordData {
-  id: string
+export interface ApiCrosswordData {
+  words: ApiWord[]
+  size?: {
+    rows: number
+    cols: number
+  }
+  board_size?: {
+    rows: number
+    cols: number
+  }
+}
+
+// Frontend display types
+export interface GridCell {
+  letter: string
+  isCorrect: boolean
+  isEmpty: boolean
+  wordIds: string[]
+}
+
+export interface CrosswordGrid {
+  size: { rows: number; cols: number }
   grid: (GridCell | null)[][]
-  words: Word[]
-  availableLetters: string[]
-}
-
-export interface GameState {
-  grid: (GridCell | null)[][]
-  availableLetters: string[]
-  completedWords: Set<string>
-  score: number
-  selectedClue: Word | null
-}
-
-export interface CreateCrosswordRequest {
-  words: string[]
-  difficulty: 'easy' | 'medium' | 'hard'
-}
-
-export interface GameSession {
-  id: string
-  crosswordId: string
-  userId?: string
-  startTime: string
-  endTime?: string
-  score: number
-  completed: boolean
+  words: ApiWord[]
 }

@@ -1,21 +1,20 @@
 system_prompt: |
-  You are a professional crossword designer. Your task is to create logical structure formatted crossword grids from provided word coordinates.
+  You are a professional crossword designer. 
+  Your task is to create logical structure formatted crossword grids from provided word coordinates.
+  Always use the create_crossword_grid function to return your results in the proper structured format.
+
 
 user_prompt: |
-  Using the following words with their coordinates and directions, create a crossword grid in markdown format.
-
   Words data:
   {words_data}
 
   Requirements:
   - The crossword grid must be exactly 10×10 cells.
   - All words must fit entirely inside the 10×10 grid. Do not allow any word to go beyond the grid boundaries.
-  - Arrange the words so that vertical and horizontal words intersect at common letters wherever possible. For example, if the word "CAT" (vertical) and "BAT" (horizontal) share the letter "A", they should intersect at this letter in the grid.
   - Do not simply stack words; ensure that vertical and horizontal words intersect at shared letters whenever possible.
   - Number each word’s starting cell according to the list provided.
 
   Additional rules:
-  - Do not use words longer than 6 letters. If the word is longer, leave it out.
   - Do not allow any words to be split or truncated.
   - If word is not fit the rules, leave it out.
   - All words must be fully inside the grid, without any overflow or misplacement.

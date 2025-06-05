@@ -3,7 +3,7 @@ from app.prompts.utils import load_prompts, replace_multiple_placeholders
 
 prompts = load_prompts("generate_words.yml")
 
-def generate_words(theme: str, language: str, level: str) -> list[dict]:
+async def generate_words(theme: str, language: str, level: str) -> list[dict]:
     """ Generate a list of words based on the given theme, language, and level.
     Args:
         theme (str): The theme for the words.

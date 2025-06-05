@@ -18,21 +18,21 @@ async def generate_crossword(request: Request):
     data = await request.json()
     print("Received data:", data)
 
-    generated_words = generate_words(
+    generated_words = await generate_words(
         theme=data.get("theme", "default"),
         language=data.get("language", "en"),
         level=data.get("level", "easy")
     )
     print("Generated words:", generated_words)
 
-    generated_coordinates = generate_coordinates(generated_words)
+    generated_coordinates = await generate_coordinates(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
-    generated_crossword_data = generate_crossword_data(generated_coordinates)
-    print("Generated crossword data:", generated_crossword_data)
+    # generated_crossword_data = generate_crossword_data(generated_coordinates)
+    # print("Generated crossword data:", generated_crossword_data)
 
     # Return structured crossword data for frontend
-    return generated_crossword_data
+    return generated_coordinates
 
 @router.get("/api/crosswords/random")
 async def get_random_crossword(difficulty: Optional[str] = "medium"):
@@ -50,17 +50,17 @@ async def get_random_crossword(difficulty: Optional[str] = "medium"):
     
     params = difficulty_mapping.get(difficulty, difficulty_mapping["medium"])
     
-    generated_words = generate_words(
+    generated_words = await generate_words(
         theme=params["theme"],
         language="en",
         level=params["level"]
     )
     print("Generated words:", generated_words)
 
-    generated_coordinates = generate_coordinates(generated_words)
+    generated_coordinates = await generate_coordinates(generated_words)
     print("Generated coordinates:", generated_coordinates)
 
-    generated_crossword_data = generate_crossword_data(generated_coordinates)
-    print("Generated crossword data:", generated_crossword_data)
+    # generated_crossword_data = generate_crossword_data(generated_coordinates)
+    # print("Generated crossword data:", generated_crossword_data)
 
-    return generated_crossword_data
+    return generated_coordinates
