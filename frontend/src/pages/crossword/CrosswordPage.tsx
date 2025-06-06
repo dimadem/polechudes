@@ -6,10 +6,7 @@ interface CrosswordPageProps {
 }
 
 export function CrosswordPage({ crosswordId, difficulty }: CrosswordPageProps = {}) {
-  const handleGameComplete = (score: number) => {
-    console.log('Game completed with score:', score)
-    // Здесь можно добавить логику для обработки завершения игры
-    // Например, показать модальное окно с результатами, сохранить статистику и т.д.
+  const handleGameComplete = () => {
   }
 
   return (

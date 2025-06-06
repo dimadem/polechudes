@@ -1,7 +1,7 @@
-import { CrosswordViewer } from '../components/CrosswordViewer'
+import { CrosswordPage } from '@/pages/crossword'
 
 function App() {
-  return <CrosswordViewer difficulty="medium" />
+  return <CrosswordPage difficulty="medium" />
 }
 
 export default App

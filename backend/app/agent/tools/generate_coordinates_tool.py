@@ -17,10 +17,10 @@ async def generate_coordinates(input: str) -> dict:
     """
     print("\n\nGenerate Coordinates tool\n")
 
-    ttt = TTT(model="o4-mini")
+    ttt = TTT(model="o3-2025-04-16")
 
     system_prompt = prompts["system_prompt"]
-    print("input:\n", input)
+    print("input\n", input)
     user_prompt = replace_multiple_placeholders(
         prompts["user_prompt"],
         {
@@ -76,7 +76,7 @@ async def generate_coordinates(input: str) -> dict:
         )
     ]
     response = ttt.generate_response_with_tools(messages=messages, tools=tools)
-    print("Response from generate_coordinates:", response)
+    print("Response from generate_coordinates\n", response)
     if response and isinstance(response, dict):
         if response.get("function_name") == "generate_coordinates":
             arguments = response.get("arguments", {})

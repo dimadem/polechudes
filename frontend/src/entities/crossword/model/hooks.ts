@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { crosswordApi } from '../api'
 import { useAsync } from '@/shared/hooks/useAsync'
-import type { GameSession } from '@/shared/types'
+import type { GameSession, CrosswordApiResponse } from '@/entities/crossword/types'
 
 export function useCrossword(crosswordId?: string) {
   const {
@@ -9,24 +9,22 @@ export function useCrossword(crosswordId?: string) {
     loading,
     error,
     execute: fetchCrossword
-  } = useAsync(crosswordApi.getCrossword)
+  } = useAsync<CrosswordApiResponse, [string]>(crosswordApi.getCrossword)
 
   const {
     data: randomCrossword,
     loading: randomLoading,
     error: randomError,
     execute: fetchRandomCrossword
-  } = useAsync(crosswordApi.getRandomCrossword)
+  } = useAsync<CrosswordApiResponse, [string?]>(crosswordApi.getRandomCrossword)
 
   useEffect(() => {
     if (crosswordId) {
-      console.log('🔍 Fetching crossword by ID:', crosswordId)
       fetchCrossword(crosswordId)
     }
   }, [crosswordId, fetchCrossword])
 
   const getRandomCrossword = useCallback((difficulty?: string) => {
-    console.log('🎲 Requesting random crossword with difficulty:', difficulty)
     return fetchRandomCrossword(difficulty)
   }, [fetchRandomCrossword])
 
@@ -47,14 +45,14 @@ export function useGameSession() {
     loading: startLoading,
     error: startError,
     execute: executeStartSession
-  } = useAsync(crosswordApi.startGameSession)
+  } = useAsync<GameSession, [string]>(crosswordApi.startGameSession)
 
   const {
     data: updateData,
     loading: updateLoading,
     error: updateError,
     execute: executeUpdateSession
-  } = useAsync(crosswordApi.updateGameSession)
+  } = useAsync<GameSession, [string, Partial<Pick<GameSession, 'score' | 'completed' | 'endTime'>>]>(crosswordApi.updateGameSession)
 
   // Обновляем локальное состояние когда приходят новые данные
   useEffect(() => {

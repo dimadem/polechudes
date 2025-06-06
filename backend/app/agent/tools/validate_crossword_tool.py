@@ -20,7 +20,7 @@ async def validate_crossword(input: str) -> dict:
     ttt = TTT(model="gpt-4.1")
 
     system_prompt = prompts["system_prompt"]
-    print("input:", input)
+    print("input\n", input)
     user_prompt = replace_multiple_placeholders(
         prompts["user_prompt"],
         {
@@ -53,7 +53,7 @@ async def validate_crossword(input: str) -> dict:
         )
     ]
     response = ttt.generate_response_with_tools(messages=messages, tools=tools)
-    print("Response from validate_crossword:", response)
+    print("Response from validate_crossword\n", response)
     if response and isinstance(response, dict):
         if response.get("function_name") == "validate_crossword":
             arguments = response.get("arguments", {})

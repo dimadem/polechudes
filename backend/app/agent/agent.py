@@ -36,7 +36,7 @@ orchestrator = Agent(
         3. If invalid due to conflicts, iteratively remove problematic words
         4. Goal: maximize the number of words placed while maintaining validity
         """,
-        model="o4-mini",
+        model="gpt-4o",
         tools=[
             generate_coordinates,
             validate_crossword
@@ -62,8 +62,6 @@ async def generate_crossword_agent(words_list: list[dict]) -> dict:
     words_text = "\n".join([f"- {item['word']}" for item in words_list])
     
     input_message = words_text
-
-   
 
     # Use the gen_coords_agent to generate crossword coordinates
     runner = await Runner.run(starting_agent=orchestrator, input=input_message)

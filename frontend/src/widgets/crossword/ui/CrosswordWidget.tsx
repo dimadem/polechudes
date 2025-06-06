@@ -1,59 +1,88 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo } from "react"
 import { Card } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
+import { DndContext, type DragEndEvent } from '@dnd-kit/core'
+import { useCrossword } from "@/entities/crossword"
+import { useCrosswordGame } from "@/features/crossword-game/model/useCrosswordGame"
+import { transformApiData } from "@/entities/crossword/lib/utils"
+import { CrosswordGrid } from "@/features/crossword-game/ui/CrosswordGrid"
+import { AvailableLetters } from "@/features/crossword-game/ui/AvailableLetters"
+import { VisualClues } from "@/features/crossword-game/ui/VisualClues"
+import { TextClues } from "@/features/crossword-game/ui/TextClues"
+import type { CrosswordApiResponse } from "@/entities/crossword/types"
 
 interface CrosswordWidgetProps {
   crosswordId?: string
-  difficulty?: 'easy' | 'medium' | 'hard'
-  onGameComplete?: (score: number) => void
+  difficulty?: "easy" | "medium" | "hard"
   className?: string
+  onGameComplete?: (score: number) => void
 }
 
 export function CrosswordWidget({ 
   crosswordId, 
   difficulty = "medium", 
-  className = ""
-}: CrosswordWidgetProps) 
-{
+  className = "",
+  onGameComplete
+}: CrosswordWidgetProps) {
+  
+  // Используем унифицированный хук для загрузки
+  const { crossword: apiData, loading, error, getRandomCrossword } = useCrossword(crosswordId)
+  
+  // Трансформируем данные от API в формат для игры
+  const crosswordData = useMemo(() => {
+    if (!apiData) return null
+    return transformApiData(apiData as CrosswordApiResponse)
+  }, [apiData])
+  
+  // Инициализируем игровую логику
+  const { 
+    gameState, 
+    initializeGame, 
+    handleLetterDrop,
+    selectClue, 
+    isGameComplete 
+  } = useCrosswordGame(crosswordData || undefined)
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [crossword, setCrossword] = useState<any>(null)
-
+  // Загружаем случайный кроссворд если нет ID
   useEffect(() => {
-    const loadCrossword = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        console.log('🎯 Loading crossword with difficulty:', difficulty)
-        
-        const apiUrl = `http://localhost:8000/api/crosswords/random?difficulty=${difficulty}`
-        console.log('🌐 API Request:', apiUrl)
-        
-        const response = await fetch(apiUrl)
-        
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}`)
-        }
-        
-        const data = await response.json()
-        console.log('✅ API Response:', data)
-        
-        setCrossword(data)
-      } catch (err) {
-        console.error('❌ API Request failed:', err)
-        setError(err instanceof Error ? err.message : 'Unknown error')
-      } finally {
-        setLoading(false)
-      }
+    if (!crosswordId) {
+      getRandomCrossword(difficulty)
     }
+  }, [crosswordId, difficulty, getRandomCrossword])
 
-    // Загружаем кроссворд только если нет ID (случайный) или есть конкретный ID
-    if (!crosswordId || crosswordId) {
-      loadCrossword()
+  // Инициализируем игру когда данные загружены
+  useEffect(() => {
+    if (crosswordData) {
+      initializeGame(crosswordData)
     }
-  }, [crosswordId, difficulty]) // Простые зависимости
+  }, [crosswordData, initializeGame])
+
+  // Проверяем завершение игры
+  useEffect(() => {
+    if (crosswordData && isGameComplete(crosswordData.words.length)) {
+      onGameComplete?.(gameState.score)
+    }
+  }, [crosswordData, gameState.score, isGameComplete, onGameComplete])
+
+  // Обработчик окончания drag & drop
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    
+    if (!over || !crosswordData) return
+
+    const dragData = active.data.current
+    const dropData = over.data.current
+
+    // Проверяем что перетаскиваем букву на ячейку
+    if (dragData?.type === 'letter' && dropData?.accepts?.includes('letter')) {
+      const letter = dragData.letter
+      const letterIndex = dragData.index
+      const row = dropData.row
+      const col = dropData.col
+
+      handleLetterDrop(letter, row, col, letterIndex, crosswordData.words)
+    }
+  }
 
   if (loading) {
     return (
@@ -61,7 +90,7 @@ export function CrosswordWidget({
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading crossword...</p>
+            <p className="text-gray-600">Загрузка кроссворда...</p>
           </div>
         </div>
       </div>
@@ -73,12 +102,12 @@ export function CrosswordWidget({
       <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
-            <p className="text-red-600 mb-4">Error loading crossword: {error}</p>
+            <p className="text-red-600 mb-4">Ошибка загрузки: {error}</p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={() => getRandomCrossword(difficulty)}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Try Again
+              Попробовать снова
             </button>
           </Card>
         </div>
@@ -86,17 +115,17 @@ export function CrosswordWidget({
     )
   }
 
-  if (!crossword) {
+  if (!crosswordData) {
     return (
       <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
-            <p className="text-gray-600 mb-4">No crossword available</p>
+            <p className="text-gray-600 mb-4">Кроссворд недоступен</p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={() => getRandomCrossword(difficulty)}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Load Random Crossword
+              Загрузить кроссворд
             </button>
           </Card>
         </div>
@@ -105,79 +134,70 @@ export function CrosswordWidget({
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
-      <div className="max-w-md mx-auto space-y-4">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-gray-800">Crossword Puzzle</h1>
-          <div className="flex justify-center items-center gap-4">
-            <Badge variant="secondary" className="text-sm">
-              Score: 0
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              0/{crossword.words?.length || 0} Words
-            </Badge>
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+            Кроссворд
+          </h1>
+          
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            {/* Сетка кроссворда */}
+            <div className="xl:col-span-2">
+              <Card className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <Badge variant="secondary" className="text-sm">
+                    Счет: {gameState.score}
+                  </Badge>
+                  <Badge variant="outline" className="text-sm">
+                    {gameState.completedWords.size}/{crosswordData.words.length} слов
+                  </Badge>
+                </div>
+                
+                <CrosswordGrid
+                  grid={gameState.grid}
+                  selectedClue={gameState.selectedClue}
+                  onCellClick={(row, col) => {
+                    // Логика клика по ячейке - найти слово в этой позиции
+                    const cell = gameState.grid[row]?.[col]
+                    if (cell && cell.wordIds.length > 0) {
+                      const wordId = cell.wordIds[0] // Берем первое слово
+                      const word = crosswordData.words.find(w => w.id === wordId)
+                      if (word) {
+                        selectClue(gameState.selectedClue?.id === word.id ? null : word)
+                      }
+                    }
+                  }}
+                />
+              </Card>
+            </div>
+
+            {/* Правая боковая панель */}
+            <div className="xl:col-span-2 space-y-6">
+              {/* Доступные буквы */}
+              <AvailableLetters
+                letters={gameState.availableLetters}
+              />
+
+              {/* Визуальные подсказки */}
+              <VisualClues
+                words={crosswordData.words}
+                completedWords={gameState.completedWords}
+                selectedClue={gameState.selectedClue}
+                onClueSelect={selectClue}
+              />
+
+              {/* Текстовые подсказки */}
+              <TextClues
+                words={crosswordData.words}
+                completedWords={gameState.completedWords}
+                selectedClue={gameState.selectedClue}
+                onClueSelect={selectClue}
+              />
+            </div>
           </div>
         </div>
-
-        {/* 
-        // Crossword Data Display (temporary)
-        <Card className="p-4">
-          <h3 className="font-semibold mb-2">Crossword Data:</h3>
-          <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-64">
-            {JSON.stringify(crossword, null, 2)}
-          </pre>
-        </Card> */}
-
-        {/* Simple Grid Display */}
-        {crossword.grid && (
-          <Card className="p-4">
-            <h3 className="font-semibold mb-2">Grid:</h3>
-            <div className="grid grid-cols-10 gap-1 max-w-xs mx-auto">
-              {crossword.grid.flat().map((cell: any, index: number) => (
-                <div
-                  key={index}
-                  className={`w-6 h-6 border text-xs flex items-center justify-center 
-                      ${cell ? 'bg-white border-gray-400' : 'bg-gray-200 border-gray-200'}
-                    `}>
-                  {cell?.number || ''}
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Available Letters */}
-        {crossword.availableLetters && (
-          <Card className="p-4">
-            <h3 className="font-semibold mb-2">Available Letters:</h3>
-            <div className="flex flex-wrap gap-2">
-              {crossword.availableLetters.map((letter: string, index: number) => (
-                <div
-                  key={index}
-                  className="w-8 h-8 bg-blue-100 border border-blue-300 rounded flex items-center justify-center font-semibold text-blue-800"
-                >
-                  {letter}
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Words List */}
-        {crossword.words && (
-          <Card className="p-4">
-            <h3 className="font-semibold mb-2">Words:</h3>
-            <div className="space-y-2">
-              {crossword.words.map((word: any, index: number) => (
-                <div key={index} className="text-sm">
-                  <strong>{word.word}</strong> - {word.clue}
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
       </div>
-    </div>
+    </DndContext>
   )
 }

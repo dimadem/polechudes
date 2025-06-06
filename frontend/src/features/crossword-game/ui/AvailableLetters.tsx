@@ -1,26 +1,69 @@
+import { useDraggable } from '@dnd-kit/core'
+
 interface AvailableLettersProps {
   letters: string[]
-  onDragStart: (letter: string) => void
 }
 
-export function AvailableLetters({ letters, onDragStart }: AvailableLettersProps) {
+interface DraggableLetterProps {
+  letter: string
+  index: number
+  onLetterUse?: (letter: string, index: number) => void
+}
+
+function DraggableLetter({ letter, index }: DraggableLetterProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: `letter-${letter}-${index}`,
+    data: {
+      type: 'letter',
+      letter,
+      index,
+    },
+  })
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined
+
   return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-semibold">Available Letters</h3>
-      <div className="flex flex-wrap gap-2">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`
+        w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl 
+        flex items-center justify-center text-xl font-bold cursor-grab 
+        hover:from-blue-600 hover:to-blue-700 transition-all duration-200 
+        shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95
+        ${isDragging ? 'opacity-50 cursor-grabbing' : ''}
+      `}
+    >
+      {letter}
+    </div>
+  )
+}
+
+export function AvailableLetters({ letters }: AvailableLettersProps) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800">Доступные буквы</h3>
+      <div className="flex flex-wrap gap-3">
         {letters.map((letter, index) => (
-          <div
+          <DraggableLetter
             key={`${letter}-${index}`}
-            draggable
-            onDragStart={() => onDragStart(letter)}
-            className="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center text-lg font-bold cursor-grab active:cursor-grabbing hover:bg-blue-600 transition-colors duration-200 shadow-md"
-          >
-            {letter}
-          </div>
+            letter={letter}
+            index={index}
+          />
         ))}
       </div>
       {letters.length === 0 && (
-        <p className="text-gray-500 text-center py-4">All letters used!</p>
+        <p className="text-gray-500 text-center py-4 italic">Все буквы использованы!</p>
       )}
     </div>
   )

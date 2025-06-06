@@ -6,15 +6,15 @@ interface UseAsyncState<T> {
   error: string | null
 }
 
-interface UseAsyncReturn<T> extends UseAsyncState<T> {
-  execute: (...args: any[]) => Promise<void>
+interface UseAsyncReturn<T, TArgs extends readonly unknown[]> extends UseAsyncState<T> {
+  execute: (...args: TArgs) => Promise<void>
   reset: () => void
 }
 
-export function useAsync<T>(
-  asyncFunction: (...args: any[]) => Promise<T>,
+export function useAsync<T, TArgs extends readonly unknown[] = []>(
+  asyncFunction: (...args: TArgs) => Promise<T>,
   immediate = false
-): UseAsyncReturn<T> {
+): UseAsyncReturn<T, TArgs> {
   const [state, setState] = useState<UseAsyncState<T>>({
     data: null,
     loading: immediate,
@@ -22,7 +22,7 @@ export function useAsync<T>(
   })
 
   const execute = useCallback(
-    async (...args: any[]) => {
+    async (...args: TArgs) => {
       setState({ data: null, loading: true, error: null })
       
       try {
