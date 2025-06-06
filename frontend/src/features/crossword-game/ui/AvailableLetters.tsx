@@ -37,11 +37,11 @@ function DraggableLetter({ letter, index }: DraggableLetterProps) {
       {...listeners}
       {...attributes}
       className={`
-        w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl 
-        flex items-center justify-center text-xl font-bold cursor-grab 
-        hover:from-blue-600 hover:to-blue-700 transition-all duration-200 
-        shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95
-        ${isDragging ? 'opacity-50 cursor-grabbing' : ''}
+        w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg 
+        flex items-center justify-center text-sm font-bold cursor-grab touch-manipulation
+        transition-all duration-150 user-select-none
+        shadow-md transform active:scale-110
+        ${isDragging ? 'opacity-60 cursor-grabbing z-50 scale-110 shadow-xl' : 'hover:scale-105 hover:shadow-lg active:shadow-xl'}
       `}
     >
       {letter}
@@ -51,9 +51,9 @@ function DraggableLetter({ letter, index }: DraggableLetterProps) {
 
 export function AvailableLetters({ letters }: AvailableLettersProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800">Доступные буквы</h3>
-      <div className="flex flex-wrap gap-3">
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold text-gray-800">Доступные буквы</h3>
+      <div className="flex flex-wrap gap-1 justify-center">
         {letters.map((letter, index) => (
           <DraggableLetter
             key={`${letter}-${index}`}
@@ -63,7 +63,7 @@ export function AvailableLetters({ letters }: AvailableLettersProps) {
         ))}
       </div>
       {letters.length === 0 && (
-        <p className="text-gray-500 text-center py-4 italic">Все буквы использованы!</p>
+        <p className="text-gray-500 text-center py-2 italic text-xs">Все буквы использованы!</p>
       )}
     </div>
   )

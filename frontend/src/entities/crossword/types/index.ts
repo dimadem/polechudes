@@ -15,6 +15,7 @@ export interface ApiWord {
   id: string
   word: string
   definition: string
+  clueImage?: string
   coordinate: {
     row: number
     col: number

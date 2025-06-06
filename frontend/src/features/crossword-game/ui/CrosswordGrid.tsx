@@ -6,6 +6,7 @@ interface CrosswordGridProps {
   grid: (GridCell | null)[][]
   selectedClue?: Word | null
   onCellClick?: (row: number, col: number) => void
+  onNumberClick?: (row: number, col: number) => void
 }
 
 interface DroppableCellProps {
@@ -14,9 +15,10 @@ interface DroppableCellProps {
   col: number
   selectedClue?: Word | null
   onCellClick?: (row: number, col: number) => void
+  onNumberClick?: (row: number, col: number) => void
 }
 
-function DroppableCell({ cell, row, col, selectedClue, onCellClick }: DroppableCellProps) {
+function DroppableCell({ cell, row, col, selectedClue, onCellClick, onNumberClick }: DroppableCellProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: `cell-${row}-${col}`,
     data: {
@@ -30,37 +32,37 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick }: DroppableC
     onCellClick?.(row, col)
   }
 
+  const handleNumberClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onNumberClick?.(row, col)
+  }
+
   if (!cell) {
     return (
-      <div className="w-12 h-12 bg-black border border-black" />
+      <div className="w-8 h-8 bg-gray-900 border border-gray-700" />
     )
   }
 
   // Белая ячейка (для букв)
   const isCorrect = cell.isCorrect && cell.letter !== ""
   const isIncorrect = cell.letter !== "" && !cell.isCorrect
-  const isEmpty = cell.letter === ""
   const isHighlighted = selectedClue && cell.wordIds.includes(selectedClue.id)
 
-  const baseClass = "w-12 h-12 bg-white border-2 border-gray-900 flex items-center justify-center font-bold cursor-pointer relative transition-all duration-200 select-none"
+  const baseClass = "w-8 h-8 bg-white border border-gray-900 flex items-center justify-center font-bold cursor-pointer relative transition-all duration-150 select-none text-sm"
   let cellClass = baseClass
 
   if (isCorrect) {
-    cellClass += " bg-green-50 border-green-600 text-green-800"
+    cellClass += " bg-green-100 text-green-800 border-green-400"
   } else if (isIncorrect) {
-    cellClass += " bg-red-50 border-red-600 text-red-800"
-  } else if (isEmpty) {
-    cellClass += " hover:border-blue-500 hover:bg-blue-50"
-  } else {
-    cellClass += " text-gray-800"
+    cellClass += " bg-red-100 text-red-800 border-red-400"
   }
 
   if (isHighlighted) {
-    cellClass += " bg-blue-200 border-blue-500 shadow-md"
+    cellClass += " bg-blue-100 border-blue-500"
   }
 
-  if (isOver && isEmpty) {
-    cellClass += " bg-blue-100 border-blue-400 shadow-lg"
+  if (isOver) {
+    cellClass += " bg-yellow-200 border-yellow-600 shadow-md scale-105"
   }
 
   return (
@@ -70,17 +72,20 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick }: DroppableC
       onClick={handleCellClick}
     >
       {cell.isWordStart && cell.wordNumber && (
-        <span className="absolute top-0.5 left-0.5 text-xs font-bold text-black leading-none bg-transparent min-w-0">
+        <span 
+          className="absolute top-0 left-0 text-xs font-bold text-black leading-none bg-white bg-opacity-80 rounded-sm px-0.5 cursor-pointer hover:bg-blue-200 transition-colors duration-150 z-10"
+          onClick={handleNumberClick}
+        >
           {cell.wordNumber}
         </span>
       )}
       
-      <span className="text-xl font-bold">
+      <span className="text-sm font-bold">
         {cell.letter}
       </span>
       
-      {cell.isCorrect && cell.letter !== "" && (
-        <CheckCircle className="absolute top-0 right-0 w-3 h-3 text-green-600 -mt-1 -mr-1" />
+      {isCorrect && (
+        <CheckCircle className="absolute -top-1 -right-1 w-3 h-3 text-green-600" />
       )}
     </div>
   )
@@ -89,18 +94,18 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick }: DroppableC
 export function CrosswordGrid({ 
   grid, 
   selectedClue,
-  onCellClick
+  onCellClick,
+  onNumberClick
 }: CrosswordGridProps) {
   
   const gridCols = grid[0]?.length || 10
   
   return (
     <div 
-      className="grid gap-1 mx-auto p-4"
+      className="grid gap-0.5 mx-auto"
       style={{ 
-        gridTemplateColumns: `repeat(${gridCols}, 48px)`,
-        maxWidth: '800px',
-        width: 'fit-content'
+        gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+        maxWidth: 'min(100%, 320px)'
       }}
     >
       {grid.map((row, rowIndex) =>
@@ -112,6 +117,7 @@ export function CrosswordGrid({
             col={colIndex}
             selectedClue={selectedClue}
             onCellClick={onCellClick}
+            onNumberClick={onNumberClick}
           />
         ))
       )}

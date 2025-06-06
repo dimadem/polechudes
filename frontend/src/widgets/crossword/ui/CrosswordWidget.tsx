@@ -1,15 +1,16 @@
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Card } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
 import { DndContext, type DragEndEvent } from '@dnd-kit/core'
 import { useCrossword } from "@/entities/crossword"
 import { useCrosswordGame } from "@/features/crossword-game/model/useCrosswordGame"
+import { useDragSensors } from "@/features/crossword-game/model/useDragSensors"
 import { transformApiData } from "@/entities/crossword/lib/utils"
+import { mockCrosswordData } from "@/features/crossword-game/lib/mockData"
 import { CrosswordGrid } from "@/features/crossword-game/ui/CrosswordGrid"
 import { AvailableLetters } from "@/features/crossword-game/ui/AvailableLetters"
-import { VisualClues } from "@/features/crossword-game/ui/VisualClues"
-import { TextClues } from "@/features/crossword-game/ui/TextClues"
-import type { CrosswordApiResponse } from "@/entities/crossword/types"
+import { ClueDialog } from "@/features/crossword-game/ui/ClueDialog"
+import type { Word } from "@/entities/crossword/types"
 
 interface CrosswordWidgetProps {
   crosswordId?: string
@@ -28,23 +29,10 @@ export function CrosswordWidget({
   // Используем унифицированный хук для загрузки
   const { crossword: apiData, loading, error, getRandomCrossword } = useCrossword(crosswordId)
   
-  // Мок-данные для кроссворда в формате API
-  const mockApiData = {
-    words: [
-      { id: '1', word: 'forest', coordinate: { row: 0, col: 0, direction: 'across' }, definition: 'Large area covered chiefly with trees and undergrowth' },
-      { id: '2', word: 'island', coordinate: { row: 1, col: 2, direction: 'down' }, definition: 'A piece of land surrounded by water' },
-      { id: '3', word: 'desert', coordinate: { row: 3, col: 0, direction: 'across' }, definition: 'A dry, barren area with little or no vegetation' },
-      { id: '4', word: 'flower', coordinate: { row: 4, col: 3, direction: 'down' }, definition: 'The colorful reproductive part of a plant' },
-      { id: '5', word: 'animal', coordinate: { row: 6, col: 0, direction: 'across' }, definition: 'A living creature that is not a plant' },
-      { id: '6', word: 'canopy', coordinate: { row: 0, col: 6, direction: 'down' }, definition: 'Uppermost layer of branches and leaves in a forest' }
-    ],
-    board_size: { rows: 10, cols: 10 }
-  }
-
   // Трансформируем данные от API в формат для игры
   const crosswordData = useMemo(() => {
-    const dataToTransform = apiData || mockApiData // Используем мок если нет API данных
-    return transformApiData(dataToTransform as CrosswordApiResponse)
+    const dataToTransform = apiData || mockCrosswordData // Используем мок если нет API данных
+    return transformApiData(dataToTransform)
   }, [apiData])
   
   // Инициализируем игровую логику
@@ -56,6 +44,13 @@ export function CrosswordWidget({
     isGameComplete,
     removeLetter 
   } = useCrosswordGame(crosswordData || undefined)
+
+  // Состояние для диалога с подсказкой
+  const [clueDialogWord, setClueDialogWord] = useState<Word | null>(null)
+  const [isClueDialogOpen, setIsClueDialogOpen] = useState(false)
+
+  // Настройка sensors для поддержки мобильных устройств
+  const sensors = useDragSensors()
 
   // Загружаем случайный кроссворд если нет ID
   useEffect(() => {
@@ -149,76 +144,81 @@ export function CrosswordWidget({
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3 ${className}`}>
+        <div className="max-w-sm mx-auto">
+          <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
             Кроссворд
           </h1>
           
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          <div className="space-y-4">
             {/* Сетка кроссворда */}
-            <div className="xl:col-span-2">
-              <Card className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <Badge variant="secondary" className="text-sm">
-                    Счет: {gameState.score}
-                  </Badge>
-                  <Badge variant="outline" className="text-sm">
-                    {gameState.completedWords.size}/{crosswordData.words.length} слов
-                  </Badge>
-                </div>
-                
-                <CrosswordGrid
-                  grid={gameState.grid}
-                  selectedClue={gameState.selectedClue}
-                  onCellClick={(row, col) => {
-                    const cell = gameState.grid[row]?.[col]
-                    if (cell) {
-                      // Если в ячейке есть буква, удаляем ее
-                      if (cell.letter) {
-                        removeLetter(row, col, crosswordData.words)
-                      } else {
-                        // Иначе выбираем подсказку
-                        if (cell.wordIds.length > 0) {
-                          const wordId = cell.wordIds[0] // Берем первое слово
-                          const word = crosswordData.words.find(w => w.id === wordId)
-                          if (word) {
-                            selectClue(gameState.selectedClue?.id === word.id ? null : word)
-                          }
+            <Card className="p-3">
+              <div className="flex justify-between items-center mb-3">
+                <Badge variant="secondary" className="text-xs">
+                  Счет: {gameState.score}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {gameState.completedWords.size}/{crosswordData.words.length} слов
+                </Badge>
+              </div>
+              
+              <CrosswordGrid
+                grid={gameState.grid}
+                selectedClue={gameState.selectedClue}
+                onCellClick={(row, col) => {
+                  const cell = gameState.grid[row]?.[col]
+                  if (cell) {
+                    // Если в ячейке есть буква, удаляем ее
+                    if (cell.letter) {
+                      removeLetter(row, col, crosswordData.words)
+                    } else {
+                      // Иначе выбираем подсказку
+                      if (cell.wordIds.length > 0) {
+                        const wordId = cell.wordIds[0] // Берем первое слово
+                        const word = crosswordData.words.find(w => w.id === wordId)
+                        if (word) {
+                          selectClue(gameState.selectedClue?.id === word.id ? null : word)
                         }
                       }
                     }
-                  }}
-                />
-              </Card>
-            </div>
-
-            {/* Правая боковая панель */}
-            <div className="xl:col-span-2 space-y-6">
-              {/* Доступные буквы */}
-              <AvailableLetters
-                letters={gameState.availableLetters}
+                  }
+                }}
+                onNumberClick={(row, col) => {
+                  const cell = gameState.grid[row]?.[col]
+                  if (cell && cell.isWordStart && cell.wordIds.length > 0) {
+                    const wordId = cell.wordIds[0] // Берем первое слово
+                    const word = crosswordData.words.find(w => w.id === wordId)
+                    if (word) {
+                      setClueDialogWord(word)
+                      setIsClueDialogOpen(true)
+                    }
+                  }
+                }}
               />
+            </Card>
 
-              {/* Визуальные подсказки */}
-              <VisualClues
-                words={crosswordData.words}
-                completedWords={gameState.completedWords}
-                selectedClue={gameState.selectedClue}
-                onClueSelect={selectClue}
-              />
+            {/* Доступные буквы */}
+            <AvailableLetters
+              letters={gameState.availableLetters}
+            />
 
-              {/* Текстовые подсказки */}
-              <TextClues
-                words={crosswordData.words}
-                completedWords={gameState.completedWords}
-                selectedClue={gameState.selectedClue}
-                onClueSelect={selectClue}
-              />
-            </div>
+            {/* Визуальные подсказки */}
+            {/* <VisualClues
+              words={crosswordData.words}
+              completedWords={gameState.completedWords}
+              selectedClue={gameState.selectedClue}
+              onClueSelect={selectClue}
+            /> */}
           </div>
         </div>
+
+        {/* Диалог с подсказкой */}
+        <ClueDialog
+          word={clueDialogWord}
+          open={isClueDialogOpen}
+          onOpenChange={setIsClueDialogOpen}
+        />
       </div>
     </DndContext>
   )

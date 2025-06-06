@@ -5,6 +5,7 @@ function transformWords(apiWords: ApiWord[]): Word[] {
     id: apiWord.id,
     word: apiWord.word,
     clue: apiWord.definition,
+    clueImage: apiWord.clueImage,
     direction: apiWord.coordinate.direction,
     coordinate: {
       row: apiWord.coordinate.row,
