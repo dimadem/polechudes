@@ -31,7 +31,7 @@ export function CrosswordWidget({
   
   // Трансформируем данные от API в формат для игры
   const crosswordData = useMemo(() => {
-    const dataToTransform = apiData || mockCrosswordData // Используем мок если нет API данных
+    const dataToTransform = apiData || mockCrosswordData
     return transformApiData(dataToTransform)
   }, [apiData])
   
@@ -54,10 +54,9 @@ export function CrosswordWidget({
 
   // Загружаем случайный кроссворд если нет ID
   useEffect(() => {
-    // Временно отключено для использования мок-данных
-    // if (!crosswordId) {
-    //   getRandomCrossword(difficulty)
-    // }
+    if (!crosswordId) {
+      getRandomCrossword(difficulty)
+    }
   }, [crosswordId, difficulty, getRandomCrossword])
 
   // Инициализируем игру когда данные загружены
@@ -148,7 +147,7 @@ export function CrosswordWidget({
       <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3 ${className}`}>
         <div className="max-w-sm mx-auto">
           <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
-            Кроссворд
+            Поле чудес
           </h1>
           
           <div className="space-y-4">

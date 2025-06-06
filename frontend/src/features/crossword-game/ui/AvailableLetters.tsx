@@ -52,7 +52,6 @@ function DraggableLetter({ letter, index }: DraggableLetterProps) {
 export function AvailableLetters({ letters }: AvailableLettersProps) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-gray-800">Доступные буквы</h3>
       <div className="flex flex-wrap gap-1 justify-center">
         {letters.map((letter, index) => (
           <DraggableLetter
