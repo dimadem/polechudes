@@ -6,7 +6,6 @@ interface CrosswordGridProps {
   grid: (GridCell | null)[][]
   selectedClue?: Word | null
   onCellClick?: (row: number, col: number) => void
-  onNumberClick?: (row: number, col: number) => void
 }
 
 interface DroppableCellProps {
@@ -15,10 +14,9 @@ interface DroppableCellProps {
   col: number
   selectedClue?: Word | null
   onCellClick?: (row: number, col: number) => void
-  onNumberClick?: (row: number, col: number) => void
 }
 
-function DroppableCell({ cell, row, col, selectedClue, onCellClick, onNumberClick }: DroppableCellProps) {
+function DroppableCell({ cell, row, col, selectedClue, onCellClick }: DroppableCellProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: `cell-${row}-${col}`,
     data: {
@@ -32,18 +30,12 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick, onNumberClic
     onCellClick?.(row, col)
   }
 
-  const handleNumberClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onNumberClick?.(row, col)
-  }
-
   if (!cell) {
     return (
-      <div className="w-8 h-8 bg-gray-900 border border-gray-700" />
+      <div className="w-8 h-8 bg-white/10 backdrop-blur-sm border border-white/20" />
     )
   }
 
-  // Белая ячейка (для букв)
   const isCorrect = cell.isCorrect && cell.letter !== ""
   const isIncorrect = cell.letter !== "" && !cell.isCorrect
   const isHighlighted = selectedClue && cell.wordIds.includes(selectedClue.id)
@@ -74,7 +66,6 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick, onNumberClic
       {cell.isWordStart && cell.wordNumber && (
         <span 
           className="absolute top-0 left-0 text-xs font-bold text-black leading-none bg-white bg-opacity-80 rounded-sm px-0.5 cursor-pointer hover:bg-blue-200 transition-colors duration-150 z-10"
-          onClick={handleNumberClick}
         >
           {cell.wordNumber}
         </span>
@@ -94,8 +85,7 @@ function DroppableCell({ cell, row, col, selectedClue, onCellClick, onNumberClic
 export function CrosswordGrid({ 
   grid, 
   selectedClue,
-  onCellClick,
-  onNumberClick
+  onCellClick
 }: CrosswordGridProps) {
   
   const gridCols = grid[0]?.length || 10
@@ -117,7 +107,6 @@ export function CrosswordGrid({
             col={colIndex}
             selectedClue={selectedClue}
             onCellClick={onCellClick}
-            onNumberClick={onNumberClick}
           />
         ))
       )}

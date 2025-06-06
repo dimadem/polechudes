@@ -82,7 +82,13 @@ export function CrosswordWidget({
 
   if (loading) {
     return (
-      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"
+      style={{
+        backgroundImage: 'url("/images/background.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -95,7 +101,13 @@ export function CrosswordWidget({
 
   if (error) {
     return (
-      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"
+      style={{
+        backgroundImage: 'url("/images/background.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
             <p className="text-red-600 mb-4">Ошибка загрузки: {error}</p>
@@ -113,7 +125,13 @@ export function CrosswordWidget({
 
   if (!crosswordData) {
     return (
-      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"
+        style={{
+        backgroundImage: 'url("/images/background.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
             <p className="text-gray-600 mb-4">Кроссворд недоступен</p>
@@ -131,19 +149,21 @@ export function CrosswordWidget({
 
   return (
     <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3"
+      style={{
+        backgroundImage: 'url("/images/background.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
         <div className="max-w-sm mx-auto">
-          <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
-            Поле чудес
-          </h1>
-          
           <div className="space-y-4">
-            <Card className="p-3">
+            <Card className="p-3 bg-transparent border-none shadow-none">
               <div className="flex justify-between items-center mb-3">
                 <Badge variant="secondary" className="text-xs">
                   Счет: {gameState.score}
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="secondary" className="text-xs">
                   {gameState.completedWords.size}/{crosswordData.words.length} слов
                 </Badge>
               </div>
@@ -154,6 +174,17 @@ export function CrosswordWidget({
                 onCellClick={(row, col) => {
                   const cell = gameState.grid[row]?.[col]
                   if (cell) {
+                    if (cell.isWordStart && cell.wordIds.length > 0) {
+                      const word = crosswordData.words.find(w => 
+                        w.id && cell.wordIds.includes(w.id) && 
+                        w.coordinate.row === row && w.coordinate.col === col
+                      )
+                      if (word) {
+                        setClueDialogWord(word)
+                        setIsClueDialogOpen(true)
+                        return
+                      }
+                    }
                     if (cell.letter) {
                       removeLetter(row, col, crosswordData.words)
                     } else {
@@ -164,17 +195,6 @@ export function CrosswordWidget({
                           selectClue(gameState.selectedClue?.id === word.id ? null : word)
                         }
                       }
-                    }
-                  }
-                }}
-                onNumberClick={(row, col) => {
-                  const cell = gameState.grid[row]?.[col]
-                  if (cell && cell.isWordStart && cell.wordIds.length > 0) {
-                    const wordId = cell.wordIds[0]
-                    const word = crosswordData.words.find(w => w.id === wordId)
-                    if (word) {
-                      setClueDialogWord(word)
-                      setIsClueDialogOpen(true)
                     }
                   }
                 }}
