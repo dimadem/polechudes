@@ -32,11 +32,11 @@ orchestrator = Agent(
         You are the crossword generation coordinator.
         Follow this workflow:
         1. Send ALL words to generate_coordinates to create maximum coverage
-        2. Validate the result
+        2. Validate the structured result from generate_coordinates using validate_crossword
         3. If invalid due to conflicts, iteratively remove problematic words
         4. Goal: maximize the number of words placed while maintaining validity
         """,
-        model="gpt-4o",
+        model="gpt-4.1-mini-2025-04-14",
         tools=[
             generate_coordinates,
             validate_crossword

@@ -28,19 +28,19 @@ export function useCrosswordGame(initialData?: CrosswordData) {
     currentGrid: (GridCell | null)[][],
     words: Word[]
   ) => {
-    return currentGrid.map(row => 
-      row.map(cell => {
-        if (!cell) return null
+    return currentGrid.map((row, rowIndex) => 
+      row.map((cell, colIndex) => {
+        if (!cell || !cell.letter) return cell
         
         const isCorrect = words.some(word => {
           const { row: startRow, col: startCol } = word.coordinate
           const letters = word.word.split('')
           
-          return letters.some((correctLetter, index) => {
-            const cellRow = word.direction === 'down' ? startRow + index : startRow
-            const cellCol = word.direction === 'across' ? startCol + index : startCol
-            return cellRow === currentGrid.indexOf(row) && 
-                   cellCol === row.indexOf(cell) && 
+          return letters.some((correctLetter, letterIndex) => {
+            const cellRow = word.direction === 'down' ? startRow + letterIndex : startRow
+            const cellCol = word.direction === 'across' ? startCol + letterIndex : startCol
+            return cellRow === rowIndex && 
+                   cellCol === colIndex && 
                    cell.letter === correctLetter.toUpperCase()
           })
         })
@@ -67,6 +67,26 @@ export function useCrosswordGame(initialData?: CrosswordData) {
     return { completedWords, score }
   }, [gameState.completedWords, gameState.score])
 
+  // Вспомогательная функция для обновления состояния игры
+  const updateGameState = useCallback((
+    newGrid: (GridCell | null)[][],
+    newAvailableLetters: string[],
+    words: Word[]
+  ) => {
+    const gridWithCorrectness = updateLetterCorrectness(newGrid, words)
+    const { completedWords, score } = checkCompletedWords(gridWithCorrectness, words)
+
+    setGameState(prev => ({
+      ...prev,
+      grid: gridWithCorrectness,
+      availableLetters: newAvailableLetters,
+      completedWords,
+      score,
+    }))
+
+    return true
+  }, [updateLetterCorrectness, checkCompletedWords])
+
   // Размещение буквы на сетке
   const placeLetter = useCallback((
     letter: string,
@@ -76,12 +96,12 @@ export function useCrosswordGame(initialData?: CrosswordData) {
     words: Word[]
   ) => {
     const cell = gameState.grid[rowIndex]?.[colIndex]
-    if (!cell) return false
+    if (!cell || letterIndex >= gameState.availableLetters.length) return false
 
-    // Проверяем, есть ли буква в доступных
-    if (letterIndex >= gameState.availableLetters.length) return false
+    // Запоминаем старую букву для возврата в доступные
+    const oldLetter = cell.letter
 
-    // Обновляем сетку
+    // Создаем новую сетку с обновленной ячейкой
     const newGrid = gameState.grid.map((row, rIdx) =>
       row.map((cell, cIdx) => {
         if (rIdx === rowIndex && cIdx === colIndex && cell) {
@@ -91,35 +111,24 @@ export function useCrosswordGame(initialData?: CrosswordData) {
       })
     )
 
-    // Обновляем правильность букв
-    const gridWithCorrectness = updateLetterCorrectness(newGrid, words)
-
-    // Удаляем букву из доступных
+    // Обновляем доступные буквы
     const newAvailableLetters = [...gameState.availableLetters]
     newAvailableLetters.splice(letterIndex, 1)
+    if (oldLetter) {
+      newAvailableLetters.push(oldLetter)
+    }
 
-    // Проверяем завершенные слова
-    const { completedWords, score } = checkCompletedWords(gridWithCorrectness, words)
-
-    setGameState(prev => ({
-      ...prev,
-      grid: gridWithCorrectness,
-      availableLetters: newAvailableLetters,
-      completedWords,
-      score,
-    }))
-
-    return true
-  }, [gameState.grid, gameState.availableLetters, updateLetterCorrectness, checkCompletedWords])
+    return updateGameState(newGrid, newAvailableLetters, words)
+  }, [gameState.grid, gameState.availableLetters, updateGameState])
 
   // Удаление буквы с сетки
   const removeLetter = useCallback((rowIndex: number, colIndex: number, words: Word[]) => {
     const cell = gameState.grid[rowIndex]?.[colIndex]
-    if (!cell || !cell.letter) return false
+    if (!cell?.letter) return false
 
     const removedLetter = cell.letter
 
-    // Обновляем сетку
+    // Создаем новую сетку с очищенной ячейкой
     const newGrid = gameState.grid.map((row, rIdx) =>
       row.map((cell, cIdx) => {
         if (rIdx === rowIndex && cIdx === colIndex && cell) {
@@ -129,25 +138,11 @@ export function useCrosswordGame(initialData?: CrosswordData) {
       })
     )
 
-    // Обновляем правильность букв
-    const gridWithCorrectness = updateLetterCorrectness(newGrid, words)
-
     // Возвращаем букву в доступные
     const newAvailableLetters = [...gameState.availableLetters, removedLetter]
 
-    // Проверяем завершенные слова
-    const { completedWords, score } = checkCompletedWords(gridWithCorrectness, words)
-
-    setGameState(prev => ({
-      ...prev,
-      grid: gridWithCorrectness,
-      availableLetters: newAvailableLetters,
-      completedWords,
-      score,
-    }))
-
-    return true
-  }, [gameState.grid, gameState.availableLetters, updateLetterCorrectness, checkCompletedWords])
+    return updateGameState(newGrid, newAvailableLetters, words)
+  }, [gameState.grid, gameState.availableLetters, updateGameState])
 
   // Обработчик drag & drop
   const handleLetterDrop = useCallback((

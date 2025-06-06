@@ -28,10 +28,23 @@ export function CrosswordWidget({
   // Используем унифицированный хук для загрузки
   const { crossword: apiData, loading, error, getRandomCrossword } = useCrossword(crosswordId)
   
+  // Мок-данные для кроссворда в формате API
+  const mockApiData = {
+    words: [
+      { id: '1', word: 'forest', coordinate: { row: 0, col: 0, direction: 'across' }, definition: 'Large area covered chiefly with trees and undergrowth' },
+      { id: '2', word: 'island', coordinate: { row: 1, col: 2, direction: 'down' }, definition: 'A piece of land surrounded by water' },
+      { id: '3', word: 'desert', coordinate: { row: 3, col: 0, direction: 'across' }, definition: 'A dry, barren area with little or no vegetation' },
+      { id: '4', word: 'flower', coordinate: { row: 4, col: 3, direction: 'down' }, definition: 'The colorful reproductive part of a plant' },
+      { id: '5', word: 'animal', coordinate: { row: 6, col: 0, direction: 'across' }, definition: 'A living creature that is not a plant' },
+      { id: '6', word: 'canopy', coordinate: { row: 0, col: 6, direction: 'down' }, definition: 'Uppermost layer of branches and leaves in a forest' }
+    ],
+    board_size: { rows: 10, cols: 10 }
+  }
+
   // Трансформируем данные от API в формат для игры
   const crosswordData = useMemo(() => {
-    if (!apiData) return null
-    return transformApiData(apiData as CrosswordApiResponse)
+    const dataToTransform = apiData || mockApiData // Используем мок если нет API данных
+    return transformApiData(dataToTransform as CrosswordApiResponse)
   }, [apiData])
   
   // Инициализируем игровую логику
@@ -40,14 +53,16 @@ export function CrosswordWidget({
     initializeGame, 
     handleLetterDrop,
     selectClue, 
-    isGameComplete 
+    isGameComplete,
+    removeLetter 
   } = useCrosswordGame(crosswordData || undefined)
 
   // Загружаем случайный кроссворд если нет ID
   useEffect(() => {
-    if (!crosswordId) {
-      getRandomCrossword(difficulty)
-    }
+    // Временно отключено для использования мок-данных
+    // if (!crosswordId) {
+    //   getRandomCrossword(difficulty)
+    // }
   }, [crosswordId, difficulty, getRandomCrossword])
 
   // Инициализируем игру когда данные загружены
@@ -158,13 +173,20 @@ export function CrosswordWidget({
                   grid={gameState.grid}
                   selectedClue={gameState.selectedClue}
                   onCellClick={(row, col) => {
-                    // Логика клика по ячейке - найти слово в этой позиции
                     const cell = gameState.grid[row]?.[col]
-                    if (cell && cell.wordIds.length > 0) {
-                      const wordId = cell.wordIds[0] // Берем первое слово
-                      const word = crosswordData.words.find(w => w.id === wordId)
-                      if (word) {
-                        selectClue(gameState.selectedClue?.id === word.id ? null : word)
+                    if (cell) {
+                      // Если в ячейке есть буква, удаляем ее
+                      if (cell.letter) {
+                        removeLetter(row, col, crosswordData.words)
+                      } else {
+                        // Иначе выбираем подсказку
+                        if (cell.wordIds.length > 0) {
+                          const wordId = cell.wordIds[0] // Берем первое слово
+                          const word = crosswordData.words.find(w => w.id === wordId)
+                          if (word) {
+                            selectClue(gameState.selectedClue?.id === word.id ? null : word)
+                          }
+                        }
                       }
                     }
                   }}

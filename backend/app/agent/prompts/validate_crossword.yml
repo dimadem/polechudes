@@ -8,7 +8,8 @@ user_prompt: |
   Words data:
   {words_data}
 
-  Requirements:
+
+  Think step by step and follow these rules when validating the crossword:
   - The crossword must be a square grid.
   - The grid must be at least 10x10.
   - Each word must be placed horizontally or vertically.

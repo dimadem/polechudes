@@ -1,6 +1,9 @@
 system_prompt: |
   You are a professional crossword constructor.  
   Your task is to build a 10×10 crossword.
+  
+  IMPORTANT: Ensure that all words in the crossword intersect with at least one other word. Words should not be placed parallel without intersections.
+
 
 user_prompt: |
   Words to place: {words}
@@ -14,4 +17,4 @@ user_prompt: |
      - If no valid placement, skip and continue
   3. Return ALL successfully placed words
 
-  CRITICAL: Process every word in the list, not just one!
+  CRITICAL: Words must intersect with others. Avoid parallel placement without intersections!
