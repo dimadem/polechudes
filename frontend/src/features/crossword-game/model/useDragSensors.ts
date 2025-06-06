@@ -12,8 +12,8 @@ export function useDragSensors() {
   
   const touchSensor = useSensor(TouchSensor, {
     activationConstraint: {
-      delay: 100,
-      tolerance: 8,
+      delay: 50,
+      tolerance: 5,
     },
   })
   

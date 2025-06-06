@@ -113,9 +113,17 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  [data-dragging="true"] {
+    pointer-events: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
   }
 }
 
@@ -125,5 +133,17 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .draggable-optimized {
+    transform-origin: center;
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 }

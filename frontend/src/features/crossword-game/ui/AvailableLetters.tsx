@@ -38,12 +38,11 @@ function DraggableLetter({ letter, index }: DraggableLetterProps) {
       {...attributes}
       className={`
         w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg 
-        flex items-center justify-center text-sm font-bold cursor-grab touch-manipulation
-        transition-all duration-150 user-select-none
-        shadow-md transform active:scale-110
-        ${isDragging ? 'opacity-60 cursor-grabbing z-50 scale-110 shadow-xl' : 'hover:scale-105 hover:shadow-lg active:shadow-xl'}
-      `}
-    >
+        flex items-center justify-center text-sm font-bold cursor-grab
+        transition-all duration-150 shadow-md transform
+        draggable-optimized
+        ${isDragging ? 'opacity-60 cursor-grabbing z-50 scale-110 shadow-xl' : 'hover:scale-105 hover:shadow-lg active:scale-110'}
+      `}>
       {letter}
     </div>
   )

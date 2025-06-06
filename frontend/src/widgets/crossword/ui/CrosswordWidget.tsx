@@ -15,27 +15,22 @@ import type { Word } from "@/entities/crossword/types"
 interface CrosswordWidgetProps {
   crosswordId?: string
   difficulty?: "easy" | "medium" | "hard"
-  className?: string
   onGameComplete?: (score: number) => void
 }
 
 export function CrosswordWidget({ 
   crosswordId, 
-  difficulty = "medium", 
-  className = "",
+  difficulty = "medium",
   onGameComplete
 }: CrosswordWidgetProps) {
   
-  // Используем унифицированный хук для загрузки
   const { crossword: apiData, loading, error, getRandomCrossword } = useCrossword(crosswordId)
   
-  // Трансформируем данные от API в формат для игры
   const crosswordData = useMemo(() => {
     const dataToTransform = apiData || mockCrosswordData
     return transformApiData(dataToTransform)
   }, [apiData])
   
-  // Инициализируем игровую логику
   const { 
     gameState, 
     initializeGame, 
@@ -45,35 +40,28 @@ export function CrosswordWidget({
     removeLetter 
   } = useCrosswordGame(crosswordData || undefined)
 
-  // Состояние для диалога с подсказкой
   const [clueDialogWord, setClueDialogWord] = useState<Word | null>(null)
   const [isClueDialogOpen, setIsClueDialogOpen] = useState(false)
 
-  // Настройка sensors для поддержки мобильных устройств
   const sensors = useDragSensors()
-
-  // Загружаем случайный кроссворд если нет ID
   useEffect(() => {
     if (!crosswordId) {
       getRandomCrossword(difficulty)
     }
   }, [crosswordId, difficulty, getRandomCrossword])
 
-  // Инициализируем игру когда данные загружены
   useEffect(() => {
     if (crosswordData) {
       initializeGame(crosswordData)
     }
   }, [crosswordData, initializeGame])
 
-  // Проверяем завершение игры
   useEffect(() => {
     if (crosswordData && isGameComplete(crosswordData.words.length)) {
       onGameComplete?.(gameState.score)
     }
   }, [crosswordData, gameState.score, isGameComplete, onGameComplete])
 
-  // Обработчик окончания drag & drop
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     
@@ -82,7 +70,6 @@ export function CrosswordWidget({
     const dragData = active.data.current
     const dropData = over.data.current
 
-    // Проверяем что перетаскиваем букву на ячейку
     if (dragData?.type === 'letter' && dropData?.accepts?.includes('letter')) {
       const letter = dragData.letter
       const letterIndex = dragData.index
@@ -95,7 +82,7 @@ export function CrosswordWidget({
 
   if (loading) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
+      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -108,7 +95,7 @@ export function CrosswordWidget({
 
   if (error) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
+      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
             <p className="text-red-600 mb-4">Ошибка загрузки: {error}</p>
@@ -126,7 +113,7 @@ export function CrosswordWidget({
 
   if (!crosswordData) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 ${className}`}>
+      <div className={"min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4"}>
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <Card className="p-6 text-center">
             <p className="text-gray-600 mb-4">Кроссворд недоступен</p>
@@ -144,14 +131,13 @@ export function CrosswordWidget({
 
   return (
     <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3 ${className}`}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3">
         <div className="max-w-sm mx-auto">
           <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
             Поле чудес
           </h1>
           
           <div className="space-y-4">
-            {/* Сетка кроссворда */}
             <Card className="p-3">
               <div className="flex justify-between items-center mb-3">
                 <Badge variant="secondary" className="text-xs">
@@ -168,13 +154,11 @@ export function CrosswordWidget({
                 onCellClick={(row, col) => {
                   const cell = gameState.grid[row]?.[col]
                   if (cell) {
-                    // Если в ячейке есть буква, удаляем ее
                     if (cell.letter) {
                       removeLetter(row, col, crosswordData.words)
                     } else {
-                      // Иначе выбираем подсказку
                       if (cell.wordIds.length > 0) {
-                        const wordId = cell.wordIds[0] // Берем первое слово
+                        const wordId = cell.wordIds[0]
                         const word = crosswordData.words.find(w => w.id === wordId)
                         if (word) {
                           selectClue(gameState.selectedClue?.id === word.id ? null : word)
@@ -186,7 +170,7 @@ export function CrosswordWidget({
                 onNumberClick={(row, col) => {
                   const cell = gameState.grid[row]?.[col]
                   if (cell && cell.isWordStart && cell.wordIds.length > 0) {
-                    const wordId = cell.wordIds[0] // Берем первое слово
+                    const wordId = cell.wordIds[0]
                     const word = crosswordData.words.find(w => w.id === wordId)
                     if (word) {
                       setClueDialogWord(word)
@@ -197,12 +181,10 @@ export function CrosswordWidget({
               />
             </Card>
 
-            {/* Доступные буквы */}
             <AvailableLetters
               letters={gameState.availableLetters}
             />
 
-            {/* Визуальные подсказки */}
             {/* <VisualClues
               words={crosswordData.words}
               completedWords={gameState.completedWords}
@@ -212,7 +194,6 @@ export function CrosswordWidget({
           </div>
         </div>
 
-        {/* Диалог с подсказкой */}
         <ClueDialog
           word={clueDialogWord}
           open={isClueDialogOpen}

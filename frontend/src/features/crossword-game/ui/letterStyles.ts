@@ -1,8 +1,20 @@
 /**
  * Стили для перетаскиваемых букв
  */
-export const letterBaseStyles = "w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg flex items-center justify-center text-sm font-bold cursor-grab touch-manipulation transition-all duration-150 user-select-none shadow-md transform active:scale-110"
-
+export const letterBaseStyles = `
+  w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg 
+  flex items-center justify-center text-sm font-bold cursor-grab touch-manipulation
+  transition-all duration-150 user-select-none shadow-md transform active:scale-110
+  
+  /* Отключение лупы и других нежелательных эффектов на мобильных */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+`
 export const letterHoverStyles = "hover:scale-105 hover:shadow-lg active:shadow-xl"
 
 export const letterDraggingStyles = "opacity-60 cursor-grabbing z-50 scale-110 shadow-xl"
