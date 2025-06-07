@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from typing import Optional, Dict, Any, List
 import asyncio
 import time
@@ -90,11 +90,19 @@ async def get_random_crossword(difficulty: Optional[str] = "medium"):
 
     params = DIFFICULTY_MAPPING.get(difficulty, DIFFICULTY_MAPPING["medium"])
     
-    crossword_data = await _generate_crossword_data(
-        theme=params["theme"],
-        language="english",
-        level=params["level"]
-    )
+    try:
+        # Устанавливаем таймаут в 8 минут для генерации
+        crossword_data = await asyncio.wait_for(
+            _generate_crossword_data(
+                theme=params["theme"],
+                language="english",
+                level=params["level"]
+            ),
+            timeout=480.0  # 8 минут
+        )
+    except asyncio.TimeoutError:
+        logger.error("Crossword generation timed out after 8 minutes")
+        raise HTTPException(status_code=504, detail="Crossword generation timed out. Please try again.")
     
     elapsed_time = time.time() - start_time
     logger.info(f"Random crossword generation completed in {elapsed_time:.2f}s")

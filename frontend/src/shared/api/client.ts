@@ -14,7 +14,7 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`
     
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 минут
+    const timeoutId = setTimeout(() => controller.abort(), 600000)
     
     const config: RequestInit = {
       headers: {
@@ -22,6 +22,7 @@ class ApiClient {
         ...options.headers,
       },
       signal: controller.signal,
+      keepalive: true,
       ...options,
     }
 
@@ -39,7 +40,7 @@ class ApiClient {
       clearTimeout(timeoutId)
       
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timed out after 5 minutes')
+        throw new Error('Request timed out after 10 minutes')
       }
       
       throw error
