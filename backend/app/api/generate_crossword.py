@@ -19,21 +19,22 @@ DIFFICULTY_MAPPING = {
 }
 
 async def _generate_crossword_data(theme: str, language: str, level: str) -> Dict[str, Any]:
-    # Generate words
+    # Step 1: Generate words first
     generated_words = await generate_words(theme=theme, language=language, level=level)
-    logger.info(f"Generated {len(generated_words)} words")
+    print("Generated words:", generated_words)
 
-    # Extract definitions for image generation
+    # Step 2: Extract definitions for image generation  
     definitions = [word_data["definition"] for word_data in generated_words]
     
-    # Start image generation and coordinate generation in parallel
+    # Step 3: Start image generation and coordinate generation in parallel
     image_task = asyncio.create_task(generate_images_for_crossword(definitions))
     coordinates_task = asyncio.create_task(generate_crossword_agent(generated_words))
     
     # Wait for both tasks to complete
     image_urls, generated_coordinates = await asyncio.gather(image_task, coordinates_task)
     
-    logger.info(f"Generated {len([url for url in image_urls if url])} successful images out of {len(image_urls)}")
+    print("Generated coordinates:", generated_coordinates)
+    print("Generated image URLs:", len([url for url in image_urls if url is not None]), "successful out of", len(image_urls))
 
     return _transform_crossword_data(generated_words, generated_coordinates, image_urls)
 

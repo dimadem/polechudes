@@ -38,7 +38,6 @@ orchestrator = Agent(
         3. If invalid due to conflicts, iteratively remove problematic words
         4. Goal: maximize the number of words placed while maintaining validity
         """,
-        model="gpt-4.1-mini-2025-04-14",
         tools=[
             generate_coordinates,
             validate_crossword
