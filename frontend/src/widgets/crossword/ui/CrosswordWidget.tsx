@@ -42,13 +42,33 @@ export function CrosswordWidget({
 
   const [clueDialogWord, setClueDialogWord] = useState<Word | null>(null)
   const [isClueDialogOpen, setIsClueDialogOpen] = useState(false)
+  const [generationTime, setGenerationTime] = useState(0)
+  const [generationStartTime, setGenerationStartTime] = useState<number | null>(null)
 
   const sensors = useDragSensors()
   useEffect(() => {
     if (!crosswordId) {
+      setGenerationStartTime(Date.now())
       getRandomCrossword(difficulty)
     }
   }, [crosswordId, difficulty, getRandomCrossword])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    
+    if (loading && generationStartTime) {
+      interval = setInterval(() => {
+        setGenerationTime(Math.floor((Date.now() - generationStartTime) / 1000))
+      }, 1000)
+    } else {
+      setGenerationTime(0)
+      setGenerationStartTime(null)
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [loading, generationStartTime])
 
   useEffect(() => {
     if (crosswordData) {
@@ -92,7 +112,9 @@ export function CrosswordWidget({
         <div className="max-w-md mx-auto flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Загрузка кроссворда...</p>
+            <p className="text-gray-600 mb-2">Генерируем кроссворд...</p>
+            <p className="text-sm text-gray-500">⏱️ {generationTime}с</p>
+            <p className="text-xs text-gray-400 mt-2">Это может занять до 5 минут</p>
           </div>
         </div>
       </div>
@@ -112,7 +134,10 @@ export function CrosswordWidget({
           <Card className="p-6 text-center">
             <p className="text-red-600 mb-4">Ошибка загрузки: {error}</p>
             <button 
-              onClick={() => getRandomCrossword(difficulty)}
+              onClick={() => {
+                setGenerationStartTime(Date.now())
+                getRandomCrossword(difficulty)
+              }}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Попробовать снова
@@ -136,7 +161,10 @@ export function CrosswordWidget({
           <Card className="p-6 text-center">
             <p className="text-gray-600 mb-4">Кроссворд недоступен</p>
             <button 
-              onClick={() => getRandomCrossword(difficulty)}
+              onClick={() => {
+                setGenerationStartTime(Date.now())
+                getRandomCrossword(difficulty)
+              }}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Загрузить кроссворд

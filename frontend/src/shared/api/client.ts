@@ -13,25 +13,36 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
     
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 минут
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      signal: controller.signal,
       ...options,
     }
 
     try {
-        const response = await fetch(url, config)
+      const response = await fetch(url, config)
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}`)
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
       }
 
       const data = await response.json()
-        return data
+      return data
     } catch (error) {
-        throw error
+      clearTimeout(timeoutId)
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timed out after 5 minutes')
+      }
+      
+      throw error
     }
   }
 
