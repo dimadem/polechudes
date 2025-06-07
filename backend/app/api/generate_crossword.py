@@ -67,7 +67,7 @@ def _transform_crossword_data(generated_words: List[Dict], generated_coordinates
         "board_size": DEFAULT_BOARD_SIZE
     }
 
-@router.post("/generate_crossword")
+@router.post("/api/generate_crossword")
 async def generate_crossword(request: Request):
     """Endpoint to generate a crossword puzzle based on the provided request data."""
     data = await request.json()
@@ -81,7 +81,7 @@ async def generate_crossword(request: Request):
 
     return crossword_data
 
-@router.get("/crosswords/random")
+@router.get("/api/crosswords/random")
 async def get_random_crossword(difficulty: Optional[str] = "medium"):
     """Endpoint to get a random crossword puzzle with specified difficulty."""
     start_time = time.time()
