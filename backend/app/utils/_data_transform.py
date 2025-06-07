@@ -1,15 +1,5 @@
-from fastapi import APIRouter, Request
-from typing import Optional, Dict, Any, List
-import asyncio
-import time
-import logging
 
-from app.agent.tools.generate_words import generate_words
-from app.agent.agent import generate_crossword_agent
-from app.core.tti import generate_images_for_crossword
 
-logger = logging.getLogger(__name__)
-router = APIRouter()
 
 DEFAULT_BOARD_SIZE = {"rows": 10, "cols": 10}
 DIFFICULTY_MAPPING = {
@@ -38,6 +28,7 @@ async def _generate_crossword_data(theme: str, language: str, level: str) -> Dic
     return _transform_crossword_data(generated_words, generated_coordinates, image_urls)
 
 def _transform_crossword_data(generated_words: List[Dict], generated_coordinates, image_urls: List[str]) -> Dict[str, Any]:
+    """Трансформация данных в формат для фронтенда"""
     # Create mappings
     word_to_definition = {word_data["word"]: word_data["definition"] for word_data in generated_words}
     word_to_image = {
@@ -66,36 +57,3 @@ def _transform_crossword_data(generated_words: List[Dict], generated_coordinates
         "words": transformed_words,
         "board_size": DEFAULT_BOARD_SIZE
     }
-
-@router.post("/generate_crossword")
-async def generate_crossword(request: Request):
-    """Endpoint to generate a crossword puzzle based on the provided request data."""
-    data = await request.json()
-    logger.info(f"Generating crossword with theme: {data.get('theme', 'default')}")
-
-    crossword_data = await _generate_crossword_data(
-        theme=data.get("theme", "default"),
-        language=data.get("language", "en"),
-        level=data.get("level", "easy")
-    )
-
-    return crossword_data
-
-@router.get("/crosswords/random")
-async def get_random_crossword(difficulty: Optional[str] = "medium"):
-    """Endpoint to get a random crossword puzzle with specified difficulty."""
-    start_time = time.time()
-    logger.info(f"Starting random crossword generation with difficulty: {difficulty}")
-
-    params = DIFFICULTY_MAPPING.get(difficulty, DIFFICULTY_MAPPING["medium"])
-    
-    crossword_data = await _generate_crossword_data(
-        theme=params["theme"],
-        language="english",
-        level=params["level"]
-    )
-    
-    elapsed_time = time.time() - start_time
-    logger.info(f"Random crossword generation completed in {elapsed_time:.2f}s")
-
-    return crossword_data

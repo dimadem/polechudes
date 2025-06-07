@@ -1,12 +1,15 @@
 from app.agent.prompts.utils import load_prompts
 
 from pydantic import BaseModel, Field
+import time
+import logging
 
 from agents import Agent, Runner
 
 from app.agent.tools.generate_coordinates_tool import generate_coordinates
 from app.agent.tools.validate_crossword_tool import validate_crossword
 
+logger = logging.getLogger(__name__)
 prompts = load_prompts("generate_coordinates.yml")
 
 class CrosswordWord(BaseModel):
@@ -15,7 +18,6 @@ class CrosswordWord(BaseModel):
     row: int = Field(description="Starting row position (0-9)")
     col: int = Field(description="Starting column position (0-9)")
     direction: str = Field(description="Direction: 'across' or 'down'")
-    definition: str = Field(description="Concise definition of the word")
 
 class CrosswordOutput(BaseModel):
     words: list[CrosswordWord] = Field(
@@ -45,47 +47,26 @@ orchestrator = Agent(
 )
 
 
-async def generate_crossword_agent(words_list: list[dict]) -> dict:
+async def generate_crossword_agent(words: list[dict]) -> CrosswordOutput:
     """ Generate crossword coordinates for a list of words.
     Args:
         words_list (list[dict]): A list of dictionaries with 'word' and 'definition' keys.
     Returns:
-        dict: A dictionary with crossword data including words and board_size for frontend.
+        CrosswordOutput: Raw agent output with crossword coordinates.
     """
 
+    start_time = time.time()
+    logger.info(f"Starting crossword generation for {len(words)} words")
     print("\n\nGenerate Crossword Agent\n")
 
-    # Create a mapping of words to their definitions
-    word_to_definition = {item['word']: item['definition'] for item in words_list}
-    
     # Convert words list to string format for the prompt
-    words_text = "\n".join([f"- {item['word']}" for item in words_list])
-    
-    input_message = words_text
+    input_message = "\n".join([f"- {item['word']}" for item in words])
 
     # Use the gen_coords_agent to generate crossword coordinates
     runner = await Runner.run(starting_agent=orchestrator, input=input_message)
 
+    elapsed_time = time.time() - start_time
+    logger.info(f"Crossword generation completed in {elapsed_time:.2f}s")
     print("Generated coordinates:", runner.final_output)
 
-    # Transform data to match frontend expectations
-    transformed_words = []
-    for word in runner.final_output.words:
-        transformed_word = {
-            "id": word.id,
-            "word": word.word,
-            "coordinate": {
-                "row": word.row,
-                "col": word.col,
-                "direction": word.direction
-            },
-            "definition": word_to_definition.get(word.word, "")
-        }
-        transformed_words.append(transformed_word)
-
-    crossword_data = {
-        "words": transformed_words,
-        "board_size": {"rows": 10, "cols": 10}
-    }
-
-    return crossword_data
+    return runner.final_output
